@@ -54,14 +54,6 @@ You must first compile the components that are shared by both the simulator and 
 
 Run `npm install` to install all dependencies.
 
-### Run
-
-To update the database with the latest season data from ESPN (which must be done at least once before simulating), run `npm run update`.
-
-To run the simulator, run `npm run simulate`.
-
-Should you run more than around ~100000 simulations, you will need to increase the JavaScript heap size. To do so, run `export NODE_OPTIONS="--max-old-space-size=6144"`, replacing `6144` with the number of MB that you would like to allocate. In this example, `6144` sets the JavaScript heap size to 6GB.
-
 ### Environment Variables
 
 The application has default environment variables that it will use if none are provided, so this part is technically optional.
@@ -103,6 +95,14 @@ DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
 ```
+
+### Run
+
+To update the database with the latest season data from ESPN (which must be done at least once before simulating), run `npm run update`.
+
+To run the simulator, run `npm run simulate`.
+
+Should you run more than around ~100000 simulations, you will need to increase the JavaScript heap size. To do so, run `export NODE_OPTIONS="--max-old-space-size=6144"`, replacing `6144` with the number of MB that you would like to allocate. In this example, `6144` sets the JavaScript heap size to 6GB.
 
 ## Web
 
@@ -154,8 +154,6 @@ DB_PASSWORD=postgres
 
 ### Run
 
-At the moment, only a developer configuration is available through NPM commands. A production configuration is WIP.
+To run a development environment of the web application, run `npm run dev`.
 
-```
-npm run dev
-```
+To run a production environment, run `npm run prod`.

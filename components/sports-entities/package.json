@@ -10,7 +10,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "pg": "^8.11.3",
-    "typeorm": "^0.3.17"
+    "typeorm": "^0.3.19"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

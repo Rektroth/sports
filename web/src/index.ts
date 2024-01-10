@@ -1,9 +1,11 @@
-import 'reflect-metadata';
 import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { type Request, type Response } from 'express';
+import fs from 'fs';
 import helmet from 'helmet';
+import http from 'http';
+import https from 'https';
 import path from 'path';
 import {
 	Game,
@@ -18,11 +20,14 @@ import TeamRoutes from './routes/teams';
 dotenv.config();
 
 const HOST = process.env.HOST ?? 'localhost';
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 3080;
+const SSL_PORT = process.env.SSL_PORT ?? 3443;
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = isNaN(Number(process.env.DB_PORT)) ? 5432 : Number(process.env.db_port);
 const DB_USERNAME = process.env.DB_USERNAME ?? 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD ?? 'postgres';
+const PRIVATE_KEY = process.env.SSL_KEY !== undefined ? fs.readFileSync(process.env.SSL_KEY) : null;
+const CERTIFICATE = process.env.SSL_CERT !== undefined ? fs.readFileSync(process.env.SSL_CERT) : null;
 
 const app = express();
 app.use(helmet({
@@ -41,7 +46,6 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
 const webDataSource = SportsDataSource(DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
-
 webDataSource.initialize().then(() => {
 	console.log('Data source initialized!');
 
@@ -57,9 +61,17 @@ webDataSource.initialize().then(() => {
 	app.use('/games', GameRoutes(gameRepo, chanceRepo));
 	app.use('/teams', TeamRoutes(teamRepo, chanceRepo, gameRepo, eloRepo));
 
-	app.listen(PORT, () => {
-		console.log(`Service listening on port ${PORT}`);
+	const httpServer = http.createServer(app);
+	httpServer.listen({ port: PORT }, () => {
+		console.log(`HTTP service listening on port ${PORT}!`);
 	});
-}).catch((e) => {
+
+	if (PRIVATE_KEY !== null && CERTIFICATE !== null) {
+		const httpsServer = https.createServer({ key: PRIVATE_KEY, cert: CERTIFICATE }, app);
+		httpsServer.listen({ port: SSL_PORT }, () => {
+			console.log(`HTTPS service listening on port ${SSL_PORT}!`);
+		});
+	}
+}).catch((e: string) => {
 	console.log(e);
 });
