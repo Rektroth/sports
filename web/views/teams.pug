@@ -1,0 +1,43 @@
+extends templates/layout
+include mixins/pcttd
+block content
+    table.chances#teams-table
+        tr
+            td.head(colspan=4)
+                button(onclick='sortTeamNames()')= 'Team'
+            td.head
+                button(onclick='sortElos()')= 'Elo'
+            td.head
+                button(onclick='sortRecords()')= 'Record'
+            td.head
+                button(onclick='sortTable(6)')= 'Playoffs'
+            td.head
+                button(onclick='sortTable(7)')= 'Division Leader'
+            td.head
+                button(onclick='sortTable(8)')= 'Conference Leader'
+            td.head
+                button(onclick='sortTable(9)')= 'Make Division Rnd'
+            td.head
+                button(onclick='sortTable(9)')= 'Division Rnd Winner'
+            td.head
+                button(onclick='sortTable(10)')= 'Conference Rnd Winner'
+            td.head
+                button(onclick='sortTable(11)')= 'Super Bowl Winner'
+        each team in teams
+            tr
+                td.team(style='background-color:' + team.color1)
+                    img(src='../img/' + team.abbreviation.toLowerCase() + '.png')
+                td.team(style='background-color:' + team.color1)
+                    a(href='/teams/' + team.id)= team.name
+                td.team(style='background-color:' + team.color1)
+                    img(src='../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
+                td.team(style='background-color:' + team.color1)= team.division.name.substring(4, 9)
+                td.rec= team.elo
+                td.rec= team.record
+                +pcttd(Number(team.simPlayoffChance))
+                +pcttd(Number(team.simDivLeaderChance))
+                +pcttd(Number(team.simConfLeaderChance))
+                +pcttd(Number(team.simMakeDivChance > 0 ? team.simMakeDivChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+                +pcttd(Number(team.simWinDivChance > 0 ? team.simWinDivChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+                +pcttd(Number(team.simWinConfChance > 0 ? team.simWinConfChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+                +pcttd(Number(team.simWinSuperBowlChance > 0 ? team.simWinSuperBowlChance : team.simPlayoffChance > 0 ? 0.00001 : 0 ))

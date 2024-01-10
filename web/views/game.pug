@@ -1,0 +1,69 @@
+extends templates/layout
+include mixins/pcttd
+block content
+    table.chances
+        tr
+            td.head= 'Chance'
+            td.head= 'Away Team'
+            td.head= 'Date'
+            td.head= 'Home Team'
+            td.head= 'Chance'
+        tr
+            +pcttd(Number(game.awayPredictorChance))
+            td.team(style='background-color:' + game.awayTeam.color2)
+                a(href='/teams/' + game.awayTeam.id)
+                    img(src='../img/' + game.awayTeam.abbreviation.toLowerCase() + '.png')
+            td.date= String(game.startDateTime).substring(0, 24)
+            td.team(style='background-color:' + game.homeTeam.color1)
+                a(href='/teams/' + game.homeTeam.id)
+                    img(src='../img/' + game.homeTeam.abbreviation.toLowerCase() + '.png')
+            +pcttd(Number(game.homePredictorChance))
+    table.chances
+        tr
+            td(colspan=3).head= 'Probabilities w/ Away Victory'
+            td(colspan=2).head= ''
+            td(colspan=3).head= 'Probabilities w/ Home Victory'
+        tr
+            td.head= 'Super Bowl Winner'
+            td.head= 'Conference Winner'
+            td.head= 'Division Winner'
+            td.head= 'Conference Leader'
+            td.head= 'Division Leader'
+            td.head= 'Playoffs'
+            td(colspan=2).head= 'Team'
+            td.head= 'Playoffs'
+            td.head= 'Division Leader'
+            td.head= 'Conference Leader'
+            td.head= 'Division Winner'
+            td.head= 'Conference Winner'
+            td.head= 'Super Bowl Winner'
+        each chance in chances
+            tr
+                +pcttd(Number(chance.superBowlWinnerChanceWithAwayWin > 0 ?
+                    chance.superBowlWinnerChanceWithAwayWin : chance.playoffChanceWithAwayWin > 0 ?
+                    0.00001 : 0))
+                +pcttd(Number(chance.confWinnerChanceWithAwayWin > 0 ?
+                    chance.confWinnerChanceWithAwayWin : chance.playoffChanceWithAwayWin > 0 ?
+                    0.00001 : 0))
+                +pcttd(Number(chance.divWinnerChanceWithAwayWin > 0 ?
+                    chance.divWinnerChanceWithAwayWin : chance.playoffChanceWithAwayWin > 0 ?
+                    0.00001 : 0))
+                +pcttd(Number(chance.confLeaderChanceWithAwayWin))
+                +pcttd(Number(chance.divLeaderChanceWithAwayWin))
+                +pcttd(Number(chance.playoffChanceWithAwayWin))
+                td.team(style='background-color:' + chance.team.color1)
+                    img(src='../img/' + chance.team.abbreviation.toLowerCase() + '.png')
+                td.team(style='background-color:' + chance.team.color1)
+                    a(href='/teams/' + chance.team.id)= chance.team.name
+                +pcttd(Number(chance.playoffChanceWithHomeWin))
+                +pcttd(Number(chance.divLeaderChanceWithHomeWin))
+                +pcttd(Number(chance.confLeaderChanceWithHomeWin))
+                +pcttd(Number(chance.divWinnerChanceWithHomeWin > 0 ?
+                    chance.divWinnerChanceWithHomeWin : chance.playoffChanceWithHomeWin > 0 ?
+                    0.00001 : 0))
+                +pcttd(Number(chance.confWinnerChanceWithHomeWin > 0 ?
+                    chance.confWinnerChanceWithHomeWin : chance.playoffChanceWithHomeWin > 0 ?
+                    0.00001 : 0))
+                +pcttd(Number(chance.superBowlWinnerChanceWithHomeWin > 0 ?
+                    chance.superBowlWinnerChanceWithHomeWin : chance.playoffChanceWithHomeWin > 0 ?
+                    0.00001 : 0))
