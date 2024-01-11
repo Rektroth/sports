@@ -1,10 +1,6 @@
 import 'reflect-metadata';
 import express, { type Express, type Request, type Response } from 'express';
-import {
-	type Repository,
-	IsNull,
-	Not
-} from 'typeorm';
+import { type Repository, IsNull, Not } from 'typeorm';
 import {
 	type Division,
 	type Game,

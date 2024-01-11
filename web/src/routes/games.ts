@@ -1,19 +1,32 @@
 import 'reflect-metadata';
 import express, { type Express, type Request, type Response } from 'express';
-import { type Repository, LessThan, MoreThanOrEqual } from 'typeorm';
+import { type Repository } from 'typeorm';
 import { chance } from '@rektroth/elo';
-import { type Game, type SimPlayoffChance } from '@rektroth/sports-entities';
+import { type Game, type SimPlayoffChance, type TeamElo } from '@rektroth/sports-entities';
 
 const app = express();
 
-export default function GameRoutes (gameRepo: Repository<Game>, chanceRepo: Repository<SimPlayoffChance>): Express {
-	app.get('/', async (req: Request, res: Response) => {
-		const games = await gameRepo.find();
-		res.render('games', { games });
-	});
-
+export default function GameRoutes (
+	gameRepo: Repository<Game>,
+	chanceRepo: Repository<SimPlayoffChance>,
+	eloRepo: Repository<TeamElo>
+): Express {
 	app.get('/:id', async (req: Request, res: Response) => {
-		let chances = await chanceRepo.find({
+		const gameId = Number(req.params.id);
+
+		if (isNaN(gameId) || gameId > 2147483646 || gameId < 1) {
+			res.render('404');
+			return;
+		}
+
+		const game = await gameRepo.findOneBy({ id: Number(req.params.id) });
+
+		if (game === null) {
+			res.render('404');
+			return;
+		}
+
+		const chances = (await chanceRepo.find({
 			relations: {
 				team: true,
 				game: {
@@ -21,60 +34,40 @@ export default function GameRoutes (gameRepo: Repository<Game>, chanceRepo: Repo
 					awayTeam: true
 				}
 			},
-			where: { gameId: Number(req.params.id) }
+			where: {
+				gameId: Number(req.params.id)
+			}
+		})).sort((a, b) => sortChances(a, b));
+
+		const homeTeamElo = await eloRepo.findOne({
+			where: {
+				teamId: game.homeTeamId
+			},
+			order: {
+				date: 'DESC'
+			}
 		});
 
-		chances = chances.sort((a, b) => sortChances(a, b));
-
-		const game = (await gameRepo.find({
-			relations: {
-				homeTeam: {
-					eloScores: true
-				},
-				awayTeam: {
-					eloScores: true
-				}
-			},
+		const awayTeamElo = await eloRepo.findOne({
 			where: {
-				id: Number(req.params.id),
-				homeTeam: {
-					eloScores: {
-						date: MoreThanOrEqual(new Date('2023-01-01'))
-					}
-				},
-				awayTeam: {
-					eloScores: {
-						date: MoreThanOrEqual(new Date('2023-01-01'))
-					}
-				}
+				teamId: game.awayTeamId
+			},
+			order: {
+				date: 'DESC'
 			}
-		}))[0];
+		});
 
-		const prevHomeTeamGame = (await gameRepo.find({
-			where: {
-				startDateTime: LessThan(game.startDateTime)
-			},
-			order: {
-				startDateTime: 'DESC'
-			},
-			take: 1
-		}))[0];
-		const prevAwayTeamGame = (await gameRepo.find({
-			where: {
-				startDateTime: LessThan(game.startDateTime)
-			},
-			order: {
-				startDateTime: 'DESC'
-			},
-			take: 1
-		}))[0];
+		const homeBreak = homeTeamElo !== null ?
+			(game.startDateTime.getTime() - homeTeamElo.date.getTime()) / 1000 / 60 / 60 / 24 :
+			7;
 
-		const homeBreak =
-			(game.startDateTime.getTime() - prevHomeTeamGame.startDateTime.getTime()) / 1000 / 60 / 60 / 24;
-		const awayBreak =
-			(game.startDateTime.getTime() - prevAwayTeamGame.startDateTime.getTime()) / 1000 / 60 / 60 / 24;
-		const homeElo = game.homeTeam?.eloScores?.sort((a, b) => a.date.getTime() > b.date.getTime() ? -1 : 1)[0].eloScore ?? 1500;
-		const awayElo = game.awayTeam?.eloScores?.sort((a, b) => a.date.getTime() > b.date.getTime() ? -1 : 1)[0].eloScore ?? 1500;
+		const awayBreak = awayTeamElo !== null ?
+			(game.startDateTime.getTime() - awayTeamElo?.date.getTime()) / 1000 / 60 / 60 / 24 :
+			7;
+
+		const homeElo = homeTeamElo?.eloScore ?? 1500;
+		const awayElo = awayTeamElo?.eloScore ?? 1500;
+
 		const homeChance = chance(
 			homeElo,
 			awayElo,
@@ -83,6 +76,7 @@ export default function GameRoutes (gameRepo: Repository<Game>, chanceRepo: Repo
 			game.seasonType,
 			homeBreak,
 			awayBreak);
+
 		const awayChance = chance(
 			awayElo,
 			homeElo,
@@ -128,6 +122,30 @@ function sortChances (a: SimPlayoffChance, b: SimPlayoffChance): number {
 		let bConfLeaderChanceDiff = b.confLeaderChanceWithHomeWin > b.confLeaderChanceWithAwayWin
 			? (b.confLeaderChanceWithHomeWin / b.confLeaderChanceWithAwayWin) - 1
 			: (b.confLeaderChanceWithAwayWin / b.confLeaderChanceWithHomeWin) - 1;
+		let aMakeDivChanceDiff = a.makeDivChanceWithHomeWin > a.makeDivChanceWithAwayWin
+			? (a.makeDivChanceWithHomeWin / a.makeDivChanceWithAwayWin) - 1
+			: (a.makeDivChanceWithAwayWin / a.makeDivChanceWithHomeWin) - 1;
+		let bMakeDivChanceDiff = b.makeDivChanceWithHomeWin > b.makeDivChanceWithAwayWin
+			? (b.makeDivChanceWithHomeWin / b.makeDivChanceWithAwayWin) - 1
+			: (b.makeDivChanceWithAwayWin / b.makeDivChanceWithHomeWin) - 1;
+		let aDivWinnerChanceDiff = a.divWinnerChanceWithHomeWin > a.divWinnerChanceWithAwayWin
+			? (a.divWinnerChanceWithHomeWin / a.divWinnerChanceWithAwayWin) - 1
+			: (a.divWinnerChanceWithAwayWin / a.divWinnerChanceWithHomeWin) - 1;
+		let bDivWinnerChanceDiff = b.divWinnerChanceWithHomeWin > b.divWinnerChanceWithAwayWin
+			? (b.divWinnerChanceWithHomeWin / b.divWinnerChanceWithAwayWin) - 1
+			: (b.divWinnerChanceWithAwayWin / b.divWinnerChanceWithHomeWin) - 1;
+		let aConfWinnerChanceDiff = a.confWinnerChanceWithHomeWin > a.confWinnerChanceWithAwayWin
+			? (a.confWinnerChanceWithHomeWin / a.confWinnerChanceWithAwayWin) - 1
+			: (a.confWinnerChanceWithAwayWin / a.confWinnerChanceWithHomeWin) - 1;
+		let bConfWinnerChanceDiff = b.confWinnerChanceWithHomeWin > b.confWinnerChanceWithAwayWin
+			? (b.confWinnerChanceWithHomeWin / b.confWinnerChanceWithAwayWin) - 1
+			: (b.confWinnerChanceWithAwayWin / b.confWinnerChanceWithHomeWin) - 1;
+		let aSuperBowlWinnerChanceDiff = a.superBowlWinnerChanceWithHomeWin > a.superBowlWinnerChanceWithAwayWin
+			? (a.superBowlWinnerChanceWithHomeWin / a.superBowlWinnerChanceWithAwayWin) - 1
+			: (a.superBowlWinnerChanceWithAwayWin / a.superBowlWinnerChanceWithHomeWin) - 1;
+		let bSuperBowlWinnerChanceDiff = b.superBowlWinnerChanceWithHomeWin > b.superBowlWinnerChanceWithAwayWin
+			? (b.superBowlWinnerChanceWithHomeWin / b.superBowlWinnerChanceWithAwayWin) - 1
+			: (b.superBowlWinnerChanceWithAwayWin / b.superBowlWinnerChanceWithHomeWin) - 1;
 
 		if (Number.isNaN(aPlayoffChanceDiff)) {
 			aPlayoffChanceDiff = 0;
@@ -153,8 +171,52 @@ function sortChances (a: SimPlayoffChance, b: SimPlayoffChance): number {
 			bConfLeaderChanceDiff = 0;
 		}
 
-		const aTotalDiff = aPlayoffChanceDiff + aDivLeaderChanceDiff + aConfLeaderChanceDiff;
-		const bTotalDiff = bPlayoffChanceDiff + bDivLeaderChanceDiff + bConfLeaderChanceDiff;
+		if (Number.isNaN(aMakeDivChanceDiff)) {
+			aMakeDivChanceDiff = 0;
+		}
+
+		if (Number.isNaN(bMakeDivChanceDiff)) {
+			bMakeDivChanceDiff = 0;
+		}
+
+		if (Number.isNaN(aDivWinnerChanceDiff)) {
+			aDivWinnerChanceDiff = 0;
+		}
+
+		if (Number.isNaN(bDivWinnerChanceDiff)) {
+			bDivWinnerChanceDiff = 0;
+		}
+
+		if (Number.isNaN(aConfWinnerChanceDiff)) {
+			aConfWinnerChanceDiff = 0;
+		}
+
+		if (Number.isNaN(bConfWinnerChanceDiff)) {
+			bConfWinnerChanceDiff = 0;
+		}
+
+		if (Number.isNaN(aSuperBowlWinnerChanceDiff)) {
+			aSuperBowlWinnerChanceDiff = 0;
+		}
+
+		if (Number.isNaN(bSuperBowlWinnerChanceDiff)) {
+			bSuperBowlWinnerChanceDiff = 0;
+		}
+
+		const aTotalDiff = aPlayoffChanceDiff +
+			aDivLeaderChanceDiff +
+			aConfLeaderChanceDiff +
+			aMakeDivChanceDiff +
+			aDivWinnerChanceDiff +
+			aConfWinnerChanceDiff +
+			aSuperBowlWinnerChanceDiff;
+		const bTotalDiff = bPlayoffChanceDiff +
+			bDivLeaderChanceDiff +
+			bConfLeaderChanceDiff +
+			bMakeDivChanceDiff +
+			bDivWinnerChanceDiff +
+			bConfWinnerChanceDiff +
+			bSuperBowlWinnerChanceDiff;
 
 		if (aTotalDiff > bTotalDiff) {
 			return -1;

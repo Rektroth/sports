@@ -58,7 +58,7 @@ webDataSource.initialize().then(() => {
 		res.redirect('/teams');
 	});
 
-	app.use('/games', GameRoutes(gameRepo, chanceRepo));
+	app.use('/games', GameRoutes(gameRepo, chanceRepo, eloRepo));
 	app.use('/teams', TeamRoutes(teamRepo, chanceRepo, gameRepo, eloRepo));
 
 	if (PRIVATE_KEY !== null && CERTIFICATE !== null) {
