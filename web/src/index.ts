@@ -61,16 +61,23 @@ webDataSource.initialize().then(() => {
 	app.use('/games', GameRoutes(gameRepo, chanceRepo));
 	app.use('/teams', TeamRoutes(teamRepo, chanceRepo, gameRepo, eloRepo));
 
-	const httpServer = http.createServer(app);
-	httpServer.listen({ port: PORT }, () => {
-		console.log(`HTTP service listening on port ${PORT}!`);
-	});
-
 	if (PRIVATE_KEY !== null && CERTIFICATE !== null) {
+		const httpApp = express();
+		httpApp.all('*', (req, res) => res.redirect(300, 'https://' + HOST))
+		const httpServer = http.createServer(httpApp);
+		httpServer.listen({ port: PORT }, () => {
+			console.log(`HTTP service listening on port ${PORT}!`);
+		});
+
 		const httpsServer = https.createServer({ key: PRIVATE_KEY, cert: CERTIFICATE }, app);
 		httpsServer.listen({ port: SSL_PORT }, () => {
 			console.log(`HTTPS service listening on port ${SSL_PORT}!`);
 		});
+	} else {
+		const httpServer = http.createServer(app);
+		httpServer.listen({ port: PORT }, () => {
+		console.log(`HTTP service listening on port ${PORT}!`);
+	});
 	}
 }).catch((e: string) => {
 	console.log(e);
