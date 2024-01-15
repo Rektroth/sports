@@ -63,7 +63,7 @@ webDataSource.initialize().then(() => {
 
 	if (PRIVATE_KEY !== null && CERTIFICATE !== null) {
 		const httpApp = express();
-		httpApp.all('*', (req, res) => res.redirect(300, 'https://' + HOST))
+		httpApp.all('*', (req, res) => { res.redirect(300, 'https://' + HOST); });
 		const httpServer = http.createServer(httpApp);
 		httpServer.listen({ port: PORT }, () => {
 			console.log(`HTTP service listening on port ${PORT}!`);
@@ -76,8 +76,8 @@ webDataSource.initialize().then(() => {
 	} else {
 		const httpServer = http.createServer(app);
 		httpServer.listen({ port: PORT }, () => {
-		console.log(`HTTP service listening on port ${PORT}!`);
-	});
+			console.log(`HTTP service listening on port ${PORT}!`);
+		});
 	}
 }).catch((e: string) => {
 	console.log(e);

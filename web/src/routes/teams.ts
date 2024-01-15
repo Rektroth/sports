@@ -91,42 +91,10 @@ export default function TeamRoutes (
 		}
 
 		teamViews = teamViews.sort((a, b) => {
-			if (a.simPlayoffChance !== undefined && b.simPlayoffChance !== undefined) {
-				if (a.simPlayoffChance > b.simPlayoffChance) {
+			if (a.simWinSuperBowlChance !== undefined && b.simWinSuperBowlChance !== undefined) {
+				if (a.simWinSuperBowlChance > b.simWinSuperBowlChance) {
 					return -1;
-				} else if (a.simPlayoffChance < b.simPlayoffChance) {
-					return 1;
-				}
-			}
-
-			if (a.simDivLeaderChance !== undefined && b.simDivLeaderChance !== undefined) {
-				if (a.simDivLeaderChance > b.simDivLeaderChance) {
-					return -1;
-				} else if (a.simDivLeaderChance < b.simDivLeaderChance) {
-					return 1;
-				}
-			}
-
-			if (a.simConfLeaderChance !== undefined && b.simConfLeaderChance !== undefined) {
-				if (a.simConfLeaderChance > b.simConfLeaderChance) {
-					return -1;
-				} else if (a.simConfLeaderChance < b.simConfLeaderChance) {
-					return 1;
-				}
-			}
-
-			if (a.simMakeDivChance !== undefined && b.simMakeDivChance !== undefined) {
-				if (a.simMakeDivChance > b.simMakeDivChance) {
-					return -1;
-				} else if (a.simMakeDivChance < b.simMakeDivChance) {
-					return 1;
-				}
-			}
-
-			if (a.simWinDivChance !== undefined && b.simWinDivChance !== undefined) {
-				if (a.simWinDivChance > b.simWinDivChance) {
-					return -1;
-				} else if (a.simWinDivChance < b.simWinDivChance) {
+				} else if (a.simWinSuperBowlChance < b.simWinSuperBowlChance) {
 					return 1;
 				}
 			}
@@ -139,10 +107,42 @@ export default function TeamRoutes (
 				}
 			}
 
-			if (a.simWinSuperBowlChance !== undefined && b.simWinSuperBowlChance !== undefined) {
-				if (a.simWinSuperBowlChance > b.simWinSuperBowlChance) {
+			if (a.simWinDivChance !== undefined && b.simWinDivChance !== undefined) {
+				if (a.simWinDivChance > b.simWinDivChance) {
 					return -1;
-				} else if (a.simWinSuperBowlChance < b.simWinSuperBowlChance) {
+				} else if (a.simWinDivChance < b.simWinDivChance) {
+					return 1;
+				}
+			}
+
+			if (a.simMakeDivChance !== undefined && b.simMakeDivChance !== undefined) {
+				if (a.simMakeDivChance > b.simMakeDivChance) {
+					return -1;
+				} else if (a.simMakeDivChance < b.simMakeDivChance) {
+					return 1;
+				}
+			}
+
+			if (a.simConfLeaderChance !== undefined && b.simConfLeaderChance !== undefined) {
+				if (a.simConfLeaderChance > b.simConfLeaderChance) {
+					return -1;
+				} else if (a.simConfLeaderChance < b.simConfLeaderChance) {
+					return 1;
+				}
+			}
+
+			if (a.simDivLeaderChance !== undefined && b.simDivLeaderChance !== undefined) {
+				if (a.simDivLeaderChance > b.simDivLeaderChance) {
+					return -1;
+				} else if (a.simDivLeaderChance < b.simDivLeaderChance) {
+					return 1;
+				}
+			}
+
+			if (a.simPlayoffChance !== undefined && b.simPlayoffChance !== undefined) {
+				if (a.simPlayoffChance > b.simPlayoffChance) {
+					return -1;
+				} else if (a.simPlayoffChance < b.simPlayoffChance) {
 					return 1;
 				}
 			}

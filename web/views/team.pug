@@ -3,7 +3,7 @@ include mixins/pcttd
 block content
     table.infobox
         tr
-            td.team(rowspan=10, style='background-color:' + team.color1)
+            td.team(rowspan=12, style='background-color:' + team.color1)
                 img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.png')
                 span
                     span= team.name
@@ -27,30 +27,19 @@ block content
             td.head= 'Lead Conference'
             +pcttd(Number(team.simConfLeaderChance))
         tr
-            td(colspan=2).head= 'Hosting Probabilities'
-        tr
-            td.head='Host Wild Card Game'
-            +pcttd(Number(team.hostWildCardChance))
-        tr
-            td.head='Host Division Game'
-            +pcttd(Number(team.hostDivisionChance))
-        tr
-            td.head='Host Conference Championship'
-            +pcttd(Number(team.hostConferenceChance))
-        tr
             td(colspan=2).head= 'Playoff Probabilities'
         tr
             td.head= 'Make Division Round'
-            +pcttd(Number(team.simMakeDivChance > 0 ? team.simMakeDivChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+            +pcttd(Number(team.simMakeDivChance))
         tr
             td.head= 'Win Division Game'
-            +pcttd(Number(team.simWinDivChance > 0 ? team.simWinDivChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+            +pcttd(Number(team.simWinDivChance))
         tr
             td.head= 'Win Conference Championship'
-            +pcttd(Number(team.simWinConfChance > 0 ? team.simWinConfChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+            +pcttd(Number(team.simWinConfChance))
         tr
             td.head= 'Win Super Bowl'
-            +pcttd(Number(team.simWinSuperBowlChance > 0 ? team.simWinSuperBowlChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
+            +pcttd(Number(team.simWinSuperBowlChance))
     table.chances
         tr
             td(colspan=8).head= 'Probabilities w/ Away Victory'
@@ -76,18 +65,10 @@ block content
             td.head= 'Super Bowl Winner'
         each chance in chances
             tr
-                +pcttd(Number(chance.superBowlWinnerChanceWithAwayWin > 0 ?
-                    chance.superBowlWinnerChanceWithAwayWin : (chance.playoffChanceWithAwayWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.confWinnerChanceWithAwayWin > 0 ?
-                    chance.confWinnerChanceWithAwayWin : (chance.playoffChanceWithAwayWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.divWinnerChanceWithAwayWin > 0 ?
-                    chance.divWinnerChanceWithAwayWin : (chance.playoffChanceWithAwayWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.makeDivChanceWithAwayWin > 0 ?
-                    chance.makeDivChanceWithAwayWin : (chance.playoffChanceWithAwayWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
+                +pcttd(Number(chance.superBowlWinnerChanceWithAwayWin))
+                +pcttd(Number(chance.confWinnerChanceWithAwayWin))
+                +pcttd(Number(chance.divWinnerChanceWithAwayWin))
+                +pcttd(Number(chance.makeDivChanceWithAwayWin))
                 +pcttd(Number(chance.confLeaderChanceWithAwayWin))
                 +pcttd(Number(chance.divLeaderChanceWithAwayWin))
                 +pcttd(Number(chance.playoffChanceWithAwayWin))

@@ -19,7 +19,15 @@ export default function GameRoutes (
 			return;
 		}
 
-		const game = await gameRepo.findOneBy({ id: Number(req.params.id) });
+		const game = await gameRepo.findOne({
+			relations: {
+				homeTeam: true,
+				awayTeam: true
+			},
+			where: {
+				id: Number(req.params.id)
+			}
+		});
 
 		if (game === null) {
 			res.render('404');
@@ -57,13 +65,13 @@ export default function GameRoutes (
 			}
 		});
 
-		const homeBreak = homeTeamElo !== null ?
-			(game.startDateTime.getTime() - homeTeamElo.date.getTime()) / 1000 / 60 / 60 / 24 :
-			7;
+		const homeBreak = homeTeamElo !== null
+			? (game.startDateTime.getTime() - homeTeamElo.date.getTime()) / 1000 / 60 / 60 / 24
+			: 7;
 
-		const awayBreak = awayTeamElo !== null ?
-			(game.startDateTime.getTime() - awayTeamElo?.date.getTime()) / 1000 / 60 / 60 / 24 :
-			7;
+		const awayBreak = awayTeamElo !== null
+			? (game.startDateTime.getTime() - awayTeamElo?.date.getTime()) / 1000 / 60 / 60 / 24
+			: 7;
 
 		const homeElo = homeTeamElo?.eloScore ?? 1500;
 		const awayElo = awayTeamElo?.eloScore ?? 1500;

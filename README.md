@@ -83,6 +83,10 @@ The following variables can be provided:
 - `DB_PASSWORD`
   - password of the user provided in `DB_USERNAME`
   - default is `postgres`
+- `MARGIN`
+  - the "margin of error" on the simulator's randomizer
+    - differences in probabilities outside of this margin will be ignored
+  - default is `0.05`
 
 Example:
 
@@ -94,6 +98,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
+MARGIN=0.05
 ```
 
 ### Run
@@ -127,7 +132,10 @@ The following variables can be provided:
   - default is `localhost`
 - `PORT`
   - the port the application listens on
-  - default is `3000`
+  - default is `3080`
+- `SSL_PORT`
+  - the port the application listen on for SSL/TLS (HTTPS) requests
+  - default is `3443`
 - `DB_HOST`
   - address of the database host
   - default is `localhost`
@@ -140,16 +148,25 @@ The following variables can be provided:
 - `DB_PASSWORD`
   - password of the user provided in `DB_USERNAME`
   - default is `postgres`
+- `PRIVATE_KEY`
+  - location of SSL/TLS private key file
+  - no default; if not provided, application does not run on SSL port
+- `CERTIFICATE`
+  - location of SSL/TLS certificate file
+  - no default; if not provided, application does not run on SSL port
 
 Example:
 
 ```
 HOST=localhost
-PORT=3000
+PORT=3080
+SSL_PORT=3443
 DB_HOST=localhost
 DB_PORT=54332
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
+PRIVATE_KEY=/etc/letsencrypt/live/example.com/privkey.pem
+CERTIFICATE=/etc/letsencrypt/live/example.com/fullchain.pem
 ```
 
 ### Run
