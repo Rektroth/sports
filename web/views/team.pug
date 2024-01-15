@@ -102,15 +102,7 @@ block content
                 +pcttd(Number(chance.playoffChanceWithHomeWin))
                 +pcttd(Number(chance.divLeaderChanceWithHomeWin))
                 +pcttd(Number(chance.confLeaderChanceWithHomeWin))
-                +pcttd(Number(chance.makeDivChanceWithHomeWin > 0 ?
-                    chance.makeDivChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.divWinnerChanceWithHomeWin > 0 ?
-                    chance.divWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.confWinnerChanceWithHomeWin > 0 ?
-                    chance.confWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.superBowlWinnerChanceWithHomeWin > 0 ?
-                    chance.superBowlWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
+                +pcttd(Number(chance.makeDivChanceWithHomeWin))
+                +pcttd(Number(chance.divWinnerChanceWithHomeWin))
+                +pcttd(Number(chance.confWinnerChanceWithHomeWin))
+                +pcttd(Number(chance.superBowlWinnerChanceWithHomeWin))

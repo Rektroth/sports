@@ -11,6 +11,7 @@ export default class SimTeam {
 	divRank: number;
 	elo: number;
 	lastGame: Date;
+	seed: number;
 
 	constructor (team: Team) {
 		this.id = team.id;
@@ -21,6 +22,7 @@ export default class SimTeam {
 		this.lossOpps = [];
 		this.tieOpps = [];
 		this.elo = team.eloScores !== undefined ? team.eloScores[0].eloScore : 1500;
+		this.seed = 0;
 	}
 
 	winGame (teamId: number): void {
