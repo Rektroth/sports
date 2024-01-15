@@ -16,27 +16,40 @@ block content
             td.head= 'Elo'
             td.rec= team.elo
         tr
-            td(colspan=2).head= 'Post-Season Probabilities'
+            td(colspan=2).head= 'Standing Probabilities'
         tr
-            td.head= 'Playoffs'
+            td.head= 'Make Playoffs'
             +pcttd(Number(team.simPlayoffChance))
         tr
-            td.head= 'Division Leader'
+            td.head= 'Lead Division'
             +pcttd(Number(team.simDivLeaderChance))
         tr
-            td.head= 'Conference Leader'
+            td.head= 'Lead Conference'
             +pcttd(Number(team.simConfLeaderChance))
         tr
-            td.head= 'Make Division Rnd'
+            td(colspan=2).head= 'Hosting Probabilities'
+        tr
+            td.head='Host Wild Card Game'
+            +pcttd(Number(team.hostWildCardChance))
+        tr
+            td.head='Host Division Game'
+            +pcttd(Number(team.hostDivisionChance))
+        tr
+            td.head='Host Conference Championship'
+            +pcttd(Number(team.hostConferenceChance))
+        tr
+            td(colspan=2).head= 'Playoff Probabilities'
+        tr
+            td.head= 'Make Division Round'
             +pcttd(Number(team.simMakeDivChance > 0 ? team.simMakeDivChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
         tr
-            td.head= 'Division Winner'
+            td.head= 'Win Division Game'
             +pcttd(Number(team.simWinDivChance > 0 ? team.simWinDivChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
         tr
-            td.head= 'Conference Winner'
+            td.head= 'Win Conference Championship'
             +pcttd(Number(team.simWinConfChance > 0 ? team.simWinConfChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
         tr
-            td.head= 'Super Bowl Winner'
+            td.head= 'Win Super Bowl'
             +pcttd(Number(team.simWinSuperBowlChance > 0 ? team.simWinSuperBowlChance : team.simPlayoffChance > 0 ? 0.00001 : 0))
     table.chances
         tr
@@ -89,15 +102,7 @@ block content
                 +pcttd(Number(chance.playoffChanceWithHomeWin))
                 +pcttd(Number(chance.divLeaderChanceWithHomeWin))
                 +pcttd(Number(chance.confLeaderChanceWithHomeWin))
-                +pcttd(Number(chance.makeDivChanceWithHomeWin > 0 ?
-                    chance.makeDivChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.divWinnerChanceWithHomeWin > 0 ?
-                    chance.divWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.confWinnerChanceWithHomeWin > 0 ?
-                    chance.confWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.superBowlWinnerChanceWithHomeWin > 0 ?
-                    chance.superBowlWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
+                +pcttd(Number(chance.makeDivChanceWithHomeWin))
+                +pcttd(Number(chance.divWinnerChanceWithHomeWin))
+                +pcttd(Number(chance.confWinnerChanceWithHomeWin))
+                +pcttd(Number(chance.superBowlWinnerChanceWithHomeWin))

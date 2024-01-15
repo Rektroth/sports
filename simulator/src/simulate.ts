@@ -104,7 +104,7 @@ export default async function main (): Promise<void> {
 	console.log('Analyzing teams...');
 
 	for (let i = 0; i < teams.length; i++) {
-		await analyzeTeam(teams[i]);
+		await analyzeTeam(teams[i], games);
 		printProgress(String(((i + 1) / teams.length) * 100));
 	}
 
@@ -320,6 +320,10 @@ async function simulate (
 			simSeasonId: sim,
 			teamId: confTeams[6].id
 		});
+
+		for (let i = 0; i < confTeams.length; i++) {
+			confTeams[i].seed = i + 1;
+		}
 	}
 
 	let wcWinners: SimTeam[] = [];
@@ -418,9 +422,9 @@ async function simulate (
 			wcWinners = wcWinners.concat([wcGame1Winner, wcGame2Winner, wcGame3Winner]);
 		}
 
-		const confWcWinners = nflSort(
-			wcWinners.filter(t => t.conferenceId === conferences[i].id),
-			divisions.filter(d => d.conferenceId === conferences[i].id).map(d => d.id));
+		const confWcWinners = wcWinners
+			.filter(t => t.conferenceId === conferences[i].id)
+			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 
 		simDivQualifiers.push({
 			simSeasonId: sim,
@@ -661,7 +665,7 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 	}
 }
 
-async function analyzeTeam (team: Team): Promise<void> {
+async function analyzeTeam (team: Team, games: Game[]): Promise<void> {
 	const totalAppearances = simAppearances.filter(s => s.teamId === team.id).length;
 	const divLeaderAppearances = simDivLeaders.filter(s => s.teamId === team.id).length;
 	const confLeaderAppearances = simConfLeaders.filter(s => s.teamId === team.id).length;
@@ -672,10 +676,27 @@ async function analyzeTeam (team: Team): Promise<void> {
 	const playoffChance = totalAppearances / SIMS;
 	const divLeaderChance = divLeaderAppearances / SIMS;
 	const confLeaderChance = confLeaderAppearances / SIMS;
-	const makeDivChance = makeDivAppearances / SIMS;
-	const divWinnerChance = divWinnerAppearances / SIMS;
-	const confWinnerChance = confWinnerAppearances / SIMS;
-	const superBowlWinnerChance = superBowlWinnerAppearances / SIMS;
+	let makeDivChance = makeDivAppearances / SIMS;
+	let divWinnerChance = divWinnerAppearances / SIMS;
+	let confWinnerChance = confWinnerAppearances / SIMS;
+	let superBowlWinnerChance = superBowlWinnerAppearances / SIMS;
+
+	const teamPlayoffGames = games
+		.filter(g =>
+			g.seasonType === SeasonType.POST && (g.homeTeamId === team.id || g.awayTeamId === team.id))
+		.sort((a, b) => a.startDateTime > b.startDateTime ? 1 : -1);
+	
+	for (let i = 0; i < teamPlayoffGames.length; i++) {
+		if (((i < 3 && (confWinnerChance === 0 || confWinnerChance === 1)) || (i === 3 && confWinnerChance === 0)) && teamPlayoffGames[i].homeTeamScore === null) {
+			if (makeDivChance === 0) {
+				makeDivChance = 0.000001;
+			}
+
+			if (makeDivChance === 1) {
+				makeDivChance = 0.999999;
+			}
+		}
+	}
 
 	await teamRepo.update({ id: team.id }, {
 		simPlayoffChance: playoffChance,
