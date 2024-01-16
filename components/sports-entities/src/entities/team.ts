@@ -30,8 +30,14 @@ export default class Team {
 	@Column({ name: 'sim_make_div_chance', type: 'numeric', nullable: true })
 		simMakeDivChance?: number;
 
+	@Column({ name: 'sim_host_div_chance', type: 'numeric', nullable: true })
+		simHostDivChance?: number;
+
 	@Column({ name: 'sim_win_div_chance', type: 'numeric', nullable: true })
 		simWinDivChance?: number;
+
+	@Column({ name: 'sim_host_conf_chance', type: 'numeric', nullable: true })
+		simHostConfChance?: number;
 
 	@Column({ name: 'sim_win_conf_chance', type: 'numeric', nullable: true })
 		simWinConfChance?: number;

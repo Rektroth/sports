@@ -3,7 +3,7 @@ include mixins/pcttd
 block content
     table.infobox
         tr
-            td.team(rowspan=12, style='background-color:' + team.color1)
+            td.team(rowspan=15, style='background-color:' + team.color1)
                 img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.png')
                 span
                     span= team.name
@@ -16,7 +16,7 @@ block content
             td.head= 'Elo'
             td.rec= team.elo
         tr
-            td(colspan=2).head= 'Standing Probabilities'
+            td(colspan=2).head= 'Seeding Probabilities'
         tr
             td.head= 'Make Playoffs'
             +pcttd(Number(team.simPlayoffChance))
@@ -26,6 +26,17 @@ block content
         tr
             td.head= 'Lead Conference'
             +pcttd(Number(team.simConfLeaderChance))
+        tr
+            td(colspan=2).head= 'Hosting Probabilities'
+        tr
+            td.head= 'Host Wild Card Game'
+            +pcttd(Number(team.simDivLeaderChance))
+        tr
+            td.head= 'Host Division Round Game'
+            +pcttd(Number(team.simHostDivChance))
+        tr
+            td.head= 'Host Conference Championship'
+            +pcttd(Number(team.simHostConfChance))
         tr
             td(colspan=2).head= 'Playoff Probabilities'
         tr

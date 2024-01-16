@@ -20,7 +20,9 @@ class TeamView {
 	simDivLeaderChance?: number;
 	simConfLeaderChance?: number;
 	simMakeDivChance?: number;
+	simHostDivChance?: number;
 	simWinDivChance?: number;
+	simHostConfChance?: number;
 	simWinConfChance?: number;
 	simWinSuperBowlChance?: number;
 	color1: string;

@@ -34,11 +34,23 @@ export default class SimPlayoffChance {
 	@Column({ name: 'make_div_chance_with_away_win', type: 'numeric' })
 		makeDivChanceWithAwayWin: number;
 
+	@Column({ name: 'host_div_chance_with_home_win', type: 'numeric' })
+		hostDivChanceWithHomeWin: number;
+
+	@Column({ name: 'host_div_chance_with_away_win', type: 'numeric' })
+		hostDivChanceWithAwayWin: number;
+
 	@Column({ name: 'div_winner_chance_with_home_win', type: 'numeric' })
 		divWinnerChanceWithHomeWin: number;
 
 	@Column({ name: 'div_winner_chance_with_away_win', type: 'numeric' })
 		divWinnerChanceWithAwayWin: number;
+
+	@Column({ name: 'host_conf_chance_with_home_win', type: 'numeric' })
+		hostConfChanceWithHomeWin: number;
+
+	@Column({ name: 'host_conf_chance_with_away_win', type: 'numeric' })
+		hostConfChanceWithAwayWin: number;
 
 	@Column({ name: 'conf_winner_chance_with_home_win', type: 'numeric' })
 		confWinnerChanceWithHomeWin: number;
