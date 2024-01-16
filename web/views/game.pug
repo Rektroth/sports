@@ -12,11 +12,11 @@ block content
             +pcttd(Number(game.awayPredictorChance))
             td.team(style='background-color:' + game.awayTeam.color2)
                 a(href='/teams/' + game.awayTeam.id)
-                    img(src='../img/' + game.awayTeam.abbreviation.toLowerCase() + '.png')
+                    img(src='../img/' + game.awayTeam.abbreviation.toLowerCase() + '.svg')
             td.date= String(game.startDateTime).substring(0, 24)
             td.team(style='background-color:' + game.homeTeam.color1)
                 a(href='/teams/' + game.homeTeam.id)
-                    img(src='../img/' + game.homeTeam.abbreviation.toLowerCase() + '.png')
+                    img(src='../img/' + game.homeTeam.abbreviation.toLowerCase() + '.svg')
             +pcttd(Number(game.homePredictorChance))
     table.chances
         tr

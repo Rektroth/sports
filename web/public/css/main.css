@@ -64,7 +64,8 @@ table.infobox img.team-logo {
 
 table.chances td.team img,
 table .conference img {
-    width: 1.75em;
+    max-height: 1.75em;
+    max-width: 1.75em;
 }
 
 table .conference img {
@@ -91,6 +92,7 @@ td.head {
 
 td.team {
     font-weight: bold;
+    height: 2em;
 }
 
 td.red.pct {
