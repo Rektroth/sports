@@ -4,7 +4,7 @@ block content
     table.infobox
         tr
             td.team(rowspan=15, style='background-color:' + team.color1)
-                img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.png')
+                img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.svg')
                 span
                     span= team.name
                     span.conference
@@ -85,12 +85,12 @@ block content
                 +pcttd(Number(chance.playoffChanceWithAwayWin))
                 td.team(style='background-color:' + chance.game.awayTeam.color2)
                     a(href='./' + chance.game.awayTeam.id)
-                        img(src='../img/' + chance.game.awayTeam.abbreviation.toLowerCase() + '.png')
+                        img(src='../img/' + chance.game.awayTeam.abbreviation.toLowerCase() + '.svg')
                 td.date
                     a(href='../games/' + chance.game.id)= String(chance.game.startDateTime).substring(0, 24)
                 td.team(style='background-color:' + chance.game.homeTeam.color1)
                     a(href='./' + chance.game.homeTeam.id)
-                        img(src='../img/' + chance.game.homeTeam.abbreviation.toLowerCase() + '.png')
+                        img(src='../img/' + chance.game.homeTeam.abbreviation.toLowerCase() + '.svg')
                 +pcttd(Number(chance.playoffChanceWithHomeWin))
                 +pcttd(Number(chance.divLeaderChanceWithHomeWin))
                 +pcttd(Number(chance.confLeaderChanceWithHomeWin))
