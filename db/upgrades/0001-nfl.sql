@@ -36,6 +36,7 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 	CREATE TABLE nfl.game (
 		id INT PRIMARY KEY,
 		season SMALLINT NOT NULL,
+		week SMALLINT NOT NULL CHECK (week >= 1),
 		start_date_time TIMESTAMP WITH TIME ZONE NOT NULL,
 		home_team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE CHECK (home_team_id != away_team_id),
 		away_team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE CHECK (away_team_id != home_team_id),
@@ -58,8 +59,7 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 		seed2 DOUBLE PRECISION CHECK (seed2 IS NULL OR (seed2 >= 0 AND seed2 <= 1)),
 		seed1 DOUBLE PRECISION CHECK (seed1 IS NULL OR (seed1 >= 0 AND seed1 <= 1)),
 		host_wc DOUBLE PRECISION CHECK (host_wc IS NULL OR (host_wc >= 0 AND host_wc <= 1)),
-	
-		post_season BOOLEAN NOT NULL DEFAULT FALSE,	host_div DOUBLE PRECISION CHECK (host_div IS NULL OR (host_div >= 0 AND host_div <= 1)),
+		host_div DOUBLE PRECISION CHECK (host_div IS NULL OR (host_div >= 0 AND host_div <= 1)),
 		host_conf DOUBLE PRECISION CHECK (host_conf IS NULL OR (host_conf >= 0 AND host_conf <= 1)),
 		make_div DOUBLE PRECISION CHECK (make_div IS NULL OR (make_div >= 0 AND make_div <= 1)),
 		make_conf DOUBLE PRECISION CHECK (make_conf IS NULL OR (make_conf >= 0 AND make_conf <= 1)),

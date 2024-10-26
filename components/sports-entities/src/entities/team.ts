@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import Division from './division';
 import Game from './game';
+import TeamChancesByGame from './teamchancesbygame';
 import TeamElo from './teamelo';
-import SimPlayoffChance from './simchance';
 
 @Entity({ name: 'team' })
 export default class Team {
@@ -17,33 +17,6 @@ export default class Team {
 
 	@Column({ name: 'division_id', type: 'smallint' })
 		divisionId: number;
-
-	@Column({ name: 'sim_playoff_chance', type: 'double precision', nullable: true })
-		simPlayoffChance?: number;
-
-	@Column({ name: 'sim_div_leader_chance', type: 'double precision', nullable: true })
-		simDivLeaderChance?: number;
-
-	@Column({ name: 'sim_conf_leader_chance', type: 'double precision', nullable: true })
-		simConfLeaderChance?: number;
-
-	@Column({ name: 'sim_make_div_chance', type: 'double precision', nullable: true })
-		simMakeDivChance?: number;
-
-	@Column({ name: 'sim_host_div_chance', type: 'double precision', nullable: true })
-		simHostDivChance?: number;
-
-	@Column({ name: 'sim_win_div_chance', type: 'double precision', nullable: true })
-		simWinDivChance?: number;
-
-	@Column({ name: 'sim_host_conf_chance', type: 'double precision', nullable: true })
-		simHostConfChance?: number;
-
-	@Column({ name: 'sim_win_conf_chance', type: 'double precision', nullable: true })
-		simWinConfChance?: number;
-
-	@Column({ name: 'sim_win_super_bowl_chance', type: 'double precision', nullable: true })
-		simWinSuperBowlChance?: number;
 
 	@Column({ name: 'color1', type: 'varchar', length: 7 })
 		color1: string;
@@ -61,8 +34,8 @@ export default class Team {
 	@OneToMany(() => Game, (game) => game.awayTeam)
 		awayGames?: Game[];
 
-	@OneToMany(() => SimPlayoffChance, (chance) => chance.team)
-		simPlayoffChances?: SimPlayoffChance[];
+	@OneToMany(() => TeamChancesByGame, (chance) => chance.team)
+		chancesByGame?: TeamChancesByGame[];
 
 	@OneToMany(() => TeamElo, (teamElo) => teamElo.team)
 		eloScores?: TeamElo[];

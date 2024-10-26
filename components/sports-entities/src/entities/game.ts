@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
-import SimPlayoffChance from './simchance';
 import Team from './team';
+import TeamChancesByGame from './teamchancesbygame';
 
 export enum SeasonType {
 	PRE = 'pre',
@@ -48,6 +48,6 @@ export default class Game {
 	@JoinColumn({ name: 'away_team_id' })
 		awayTeam?: Team;
 
-	@OneToMany(() => SimPlayoffChance, (chance) => chance.game)
-		simPlayoffChances?: SimPlayoffChance[];
+	@OneToMany(() => TeamChancesByGame, (chance) => chance.game)
+		teamChances?: TeamChancesByGame[];
 }
