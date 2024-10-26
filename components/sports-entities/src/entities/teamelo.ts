@@ -9,7 +9,7 @@ export default class TeamElo {
 	@PrimaryColumn({ name: 'date', type: 'timestamp' })
 		date: Date;
 
-	@Column({ name: 'elo_score', type: 'smallint' })
+	@Column({ name: 'elo_score', type: 'double precision' })
 		eloScore: number;
 
 	@ManyToOne(() => Team, (team) => team.eloScores)

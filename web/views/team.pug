@@ -3,18 +3,13 @@ include mixins/pcttd
 block content
     table.infobox
         tr
-            td.team(rowspan=15, style='background-color:' + team.color1)
+            td.team-header(colspan=3, rowspan=14, style='background-color:' + team.color1)
                 img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.svg')
-                span
-                    span= team.name
-                    span.conference
-                        img(src='../../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
-                    span= team.division.name.substring(4, 9)
             td.head= 'Record'
             td.rec= team.record
         tr
             td.head= 'Elo'
-            td.rec= team.elo
+            td.rec= Math.round(team.elo)
         tr
             td(colspan=2).head= 'Seeding Probabilities'
         tr
@@ -49,6 +44,10 @@ block content
             td.head= 'Win Conference Championship'
             +pcttd(Number(team.simWinConfChance))
         tr
+            td.team(style='background-color:' + team.color1)= team.name
+            td.team(style='background-color:' + team.color1)
+                    img(src='../../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
+            td.team(style='background-color:' + team.color1)= team.division.name.substring(4, 9)
             td.head= 'Win Super Bowl'
             +pcttd(Number(team.simWinSuperBowlChance))
     table.chances

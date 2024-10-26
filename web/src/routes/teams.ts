@@ -50,12 +50,12 @@ export default function TeamRoutes (
 			const games = await gameRepo.findBy([{
 				homeTeamId: teams[i].id,
 				homeTeamScore: Not(IsNull()),
-				season: 2023,
+				season: 2024,
 				seasonType: SeasonType.REGULAR
 			}, {
 				awayTeamId: teams[i].id,
 				awayTeamScore: Not(IsNull()),
-				season: 2023,
+				season: 2024,
 				seasonType: SeasonType.REGULAR
 			}]);
 
@@ -198,12 +198,12 @@ export default function TeamRoutes (
 		const games = await gameRepo.findBy([{
 			homeTeamId: teamId,
 			homeTeamScore: Not(IsNull()),
-			season: 2023,
+			season: 2024,
 			seasonType: SeasonType.REGULAR
 		}, {
 			awayTeamId: teamId,
 			awayTeamScore: Not(IsNull()),
-			season: 2023,
+			season: 2024,
 			seasonType: SeasonType.REGULAR
 		}]);
 

@@ -10,58 +10,58 @@ export default class SimPlayoffChance {
 	@PrimaryColumn({ name: 'team_id', type: 'smallint' })
 		teamId: number;
 
-	@Column({ name: 'playoff_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'playoff_chance_with_away_win', type: 'double precision' })
 		playoffChanceWithAwayWin: number;
 
-	@Column({ name: 'playoff_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'playoff_chance_with_home_win', type: 'double precision' })
 		playoffChanceWithHomeWin: number;
 
-	@Column({ name: 'div_leader_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'div_leader_chance_with_away_win', type: 'double precision' })
 		divLeaderChanceWithAwayWin: number;
 
-	@Column({ name: 'div_leader_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'div_leader_chance_with_home_win', type: 'double precision' })
 		divLeaderChanceWithHomeWin: number;
 
-	@Column({ name: 'conf_leader_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'conf_leader_chance_with_away_win', type: 'double precision' })
 		confLeaderChanceWithAwayWin: number;
 
-	@Column({ name: 'conf_leader_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'conf_leader_chance_with_home_win', type: 'double precision' })
 		confLeaderChanceWithHomeWin: number;
 
-	@Column({ name: 'make_div_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'make_div_chance_with_home_win', type: 'double precision' })
 		makeDivChanceWithHomeWin: number;
 
-	@Column({ name: 'make_div_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'make_div_chance_with_away_win', type: 'double precision' })
 		makeDivChanceWithAwayWin: number;
 
-	@Column({ name: 'host_div_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'host_div_chance_with_home_win', type: 'double precision' })
 		hostDivChanceWithHomeWin: number;
 
-	@Column({ name: 'host_div_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'host_div_chance_with_away_win', type: 'double precision' })
 		hostDivChanceWithAwayWin: number;
 
-	@Column({ name: 'div_winner_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'div_winner_chance_with_home_win', type: 'double precision' })
 		divWinnerChanceWithHomeWin: number;
 
-	@Column({ name: 'div_winner_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'div_winner_chance_with_away_win', type: 'double precision' })
 		divWinnerChanceWithAwayWin: number;
 
-	@Column({ name: 'host_conf_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'host_conf_chance_with_home_win', type: 'double precision' })
 		hostConfChanceWithHomeWin: number;
 
-	@Column({ name: 'host_conf_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'host_conf_chance_with_away_win', type: 'double precision' })
 		hostConfChanceWithAwayWin: number;
 
-	@Column({ name: 'conf_winner_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'conf_winner_chance_with_home_win', type: 'double precision' })
 		confWinnerChanceWithHomeWin: number;
 
-	@Column({ name: 'conf_winner_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'conf_winner_chance_with_away_win', type: 'double precision' })
 		confWinnerChanceWithAwayWin: number;
 
-	@Column({ name: 'super_bowl_winner_chance_with_home_win', type: 'numeric' })
+	@Column({ name: 'super_bowl_winner_chance_with_home_win', type: 'double precision' })
 		superBowlWinnerChanceWithHomeWin: number;
 
-	@Column({ name: 'super_bowl_winner_chance_with_away_win', type: 'numeric' })
+	@Column({ name: 'super_bowl_winner_chance_with_away_win', type: 'double precision' })
 		superBowlWinnerChanceWithAwayWin: number;
 
 	@ManyToOne(() => Game)

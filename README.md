@@ -83,10 +83,10 @@ The following variables can be provided:
 - `DB_PASSWORD`
   - password of the user provided in `DB_USERNAME`
   - default is `postgres`
-- `MARGIN`
-  - the "margin of error" on the simulator's randomizer
-    - differences in probabilities outside of this margin will be ignored
-  - default is `0.05`
+- `CONFIDENCE_INTERVAL`
+  - the "confidence interval" on the simulator's randomizer
+    - differences in probabilities outside of a margin of error calculated using this interval will be ignored
+  - default is `2.576`
 
 Example:
 
@@ -107,7 +107,7 @@ To update the database with the latest season data from ESPN (which must be done
 
 To run the simulator, run `npm run simulate`.
 
-Should you run more than around ~100000 simulations, you will need to increase the JavaScript heap size. To do so, run `export NODE_OPTIONS="--max-old-space-size=6144"`, replacing `6144` with the number of MB that you would like to allocate. In this example, `6144` sets the JavaScript heap size to 6GB.
+Should you run more than around ~100000 simulations, you will need to increase the JavaScript heap size. To do so, run `export NODE_OPTIONS="--max-old-space-size=8192"`, replacing `8192` with the number of MB that you would like to allocate. In this example, `8192` sets the JavaScript heap size to 8GB.
 
 ## Web
 

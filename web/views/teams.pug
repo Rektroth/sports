@@ -3,8 +3,10 @@ include mixins/pcttd
 block content
     table.chances#teams-table
         tr
-            td.head(colspan=4)
+            td.head(colspan=2)
                 button(onclick='sortTeamNames()')= 'Team'
+            td.head(colspan=2)
+                button(onclick='sortDivisions()')= 'Division'
             td.head
                 button(onclick='sortElos()')= 'Elo'
             td.head
@@ -18,11 +20,11 @@ block content
             td.head
                 button(onclick='sortTable(9)')= 'Make Division Rnd'
             td.head
-                button(onclick='sortTable(9)')= 'Division Rnd Winner'
+                button(onclick='sortTable(10)')= 'Division Rnd Winner'
             td.head
-                button(onclick='sortTable(10)')= 'Conference Rnd Winner'
+                button(onclick='sortTable(11)')= 'Conference Rnd Winner'
             td.head
-                button(onclick='sortTable(11)')= 'Super Bowl Winner'
+                button(onclick='sortTable(12)')= 'Super Bowl Winner'
         each team in teams
             tr
                 td.team(style='background-color:' + team.color1)
@@ -32,7 +34,7 @@ block content
                 td.team(style='background-color:' + team.color1)
                     img(src='../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
                 td.team(style='background-color:' + team.color1)= team.division.name.substring(4, 9)
-                td.rec= team.elo
+                td.rec= Math.round(team.elo)
                 td.rec= team.record
                 +pcttd(Number(team.simPlayoffChance))
                 +pcttd(Number(team.simDivLeaderChance))

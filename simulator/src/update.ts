@@ -15,7 +15,7 @@ dotenv.config();
 const SCOREBOARD_ENDPOINT = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
 const SUMMARY_ENDPOINT = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary';
 const FIRST_SEASON = 2002;
-const LAST_SEASON = 2023;
+const LAST_SEASON = isNaN(Number(process.env.CURRENT_SEASON)) ? 2023 : Number(process.env.CURRENT_SEASON);
 const PRE_SEASON = 1;
 const REGULAR_SEASON = 2;
 const POST_SEASON = 3;
@@ -77,7 +77,7 @@ async function updateGames (): Promise<void> {
         !!teamIds.includes(Number(g.competitions[0].competitors[1].id)) &&
         (g.status.type.id === '1' || g.status.type.id === '2'));
 	const gamesToDelete = games.filter(g =>
-		g.status.type.id !== '1' && g.status.type.id !== '2' && g.status.type.id !== '3');
+		g.status.type.id !== '1' && g.status.type.id !== '2' && g.status.type.id !== '3' && g.season.year !== LAST_SEASON);
 
 	const completedGamesNeedUpdate = completedGames.filter((g) => existingUnplayedGameIds.includes(Number(g.id)));
 	const completedGamesNeedInsert = completedGames.filter((g) => !existingGameIds.includes(Number(g.id)));
@@ -111,22 +111,21 @@ async function updateGames (): Promise<void> {
 
 	for (let i = 0; i < completedGamesNeedInsert.length; i++) {
 		console.log(`Inserting completed game ${i + 1} of ${completedGamesNeedInsert.length}...`);
-		const game = await (await fetch(SUMMARY_ENDPOINT + '?event=' + completedGamesNeedInsert[i].id))
-			.json() as EspnSummary;
-		const id = Number(game.header.id);
-		const startDateTime = new Date(game.header.competitions[0].date);
-		const neutralSite = game.header.competitions[0].neutralSite;
-		const season = game.header.season.year;
-		const seasonType = game.header.season.type === PRE_SEASON
+		const game = completedGamesNeedInsert[i];
+		const id = Number(game.id);
+		const startDateTime = new Date(game.competitions[0].date);
+		const neutralSite = game.competitions[0].neutralSite;
+		const season = game.season.year;
+		const seasonType = game.season.type === PRE_SEASON
 			? SeasonType.PRE
-			: game.header.season.type === POST_SEASON
+			: game.season.type === POST_SEASON
 				? SeasonType.POST
 				: SeasonType.REGULAR;
-		const homeTeamId = Number(game.header.competitions[0].competitors.find(c => c.homeAway === HOME)?.id);
-		const awayTeamId = Number(game.header.competitions[0].competitors.find(c => c.homeAway === AWAY)?.id);
-		const homeTeamScore = Number(game.header.competitions[0].competitors
+		const homeTeamId = Number(game.competitions[0].competitors.find(c => c.homeAway === HOME)?.id);
+		const awayTeamId = Number(game.competitions[0].competitors.find(c => c.homeAway === AWAY)?.id);
+		const homeTeamScore = Number(game.competitions[0].competitors
 			.find(c => c.homeAway === HOME)?.score);
-		const awayTeamScore = Number(game.header.competitions[0].competitors
+		const awayTeamScore = Number(game.competitions[0].competitors
 			.find(c => c.homeAway === AWAY)?.score);
 
 		await gameRepo.insert({
@@ -233,7 +232,7 @@ async function updateEloScores (): Promise<void> {
 				continue;
 			}
 
-			homeElo = homeTeamElos[0].eloScore;
+			homeElo = Number(homeTeamElos[0].eloScore);
 			homeDaysSinceLastGame =
 				(game.startDateTime.getTime() - homeTeamElos[0].date.getTime()) / 1000 / 60 / 60 / 24;
 
@@ -259,7 +258,7 @@ async function updateEloScores (): Promise<void> {
 				continue;
 			}
 
-			awayElo = awayTeamElos[0].eloScore;
+			awayElo = Number(awayTeamElos[0].eloScore);
 			awayDaysSinceLastGame =
 				(game.startDateTime.getTime() - awayTeamElos[0].date.getTime()) / 1000 / 60 / 60 / 24;
 

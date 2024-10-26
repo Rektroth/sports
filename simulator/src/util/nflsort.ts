@@ -256,7 +256,7 @@ function headToHeadSortConf (
 
 	// this *shouldn't* ever be reached
 	console.log('!!!! headToHeadSortConf return 0 somehow reached !!!!');
-	return 0;
+	return coinToss();
 }
 
 function divPctSortDiv (

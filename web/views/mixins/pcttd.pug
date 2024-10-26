@@ -4,13 +4,5 @@ mixin pcttd(pct)
     - str = pct < 0.001 && pct != 0 ? '<0.1' : str;
     - str = pct > 0.999 && pct != 1 ? '>99.9' : str;
     - str = rndPct % 1 == 0 && rndPct != 0 && rndPct != 100 ? str + '.0%' : str + '%';
-    if pct == 1
-        td.green.pct= str
-    else if pct >= 0.6667
-        td.yellow-green.pct= str
-    else if pct >= 0.3333
-        td.yellow.pct= str
-    else if pct > 0
-        td.orange.pct= str
-    else
-        td.red.pct= str
+    - let redGreen = (192 * (1 - pct)) + 63
+    td(style='background-color: rgb(' + redGreen + ', ' + redGreen + ', 255)').pct= str

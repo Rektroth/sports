@@ -70,6 +70,10 @@ export default class SimTeam {
 	}
 
 	getStrengthOfVictory (teams: SimTeam[]): number {
+		if (this.winOpps.length === 0 && this.tieOpps.length === 0) {
+			return 0;
+		}
+
 		let sum = 0;
 
 		for (let i = 0; i < this.winOpps.length; i++) {

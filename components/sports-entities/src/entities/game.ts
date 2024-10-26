@@ -18,6 +18,9 @@ export default class Game {
 
 	@Column({ name: 'start_date_time', type: 'timestamp' })
 		startDateTime: Date;
+	
+	@Column({ name: 'week', type: 'smallint' })
+		week: number;
 
 	@Column({ name: 'home_team_id', type: 'smallint' })
 		homeTeamId: number;

@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import express, { type Express, type Request, type Response } from 'express';
-import { type Repository } from 'typeorm';
+import { type Repository, LessThan } from 'typeorm';
 import { chance } from '@rektroth/elo';
 import { type Game, type SimPlayoffChance, type TeamElo } from '@rektroth/sports-entities';
 
@@ -45,7 +45,7 @@ export default function GameRoutes (
 			where: {
 				gameId: Number(req.params.id)
 			}
-		})).sort((a, b) => sortChances(a, b));
+		})).filter(a => totalChanceDiff(a) > 0).sort((a, b) => sortChances(a, b));
 
 		const homeTeamElo = await eloRepo.findOne({
 			where: {
@@ -65,13 +65,42 @@ export default function GameRoutes (
 			}
 		});
 
-		const homeBreak = homeTeamElo !== null
-			? (game.startDateTime.getTime() - homeTeamElo.date.getTime()) / 1000 / 60 / 60 / 24
-			: 7;
+		const homeTeamLastGameDate = (await gameRepo.findOne({
+			where: [{
+				homeTeamId: game.homeTeamId,
+				startDateTime: LessThan(game.startDateTime)
+			}, {
+				awayTeamId: game.homeTeamId,
+				startDateTime: LessThan(game.startDateTime)
+			}],
+			order: {
+				startDateTime: 'DESC'
+			}
+		}))?.startDateTime.getTime();
 
-		const awayBreak = awayTeamElo !== null
-			? (game.startDateTime.getTime() - awayTeamElo?.date.getTime()) / 1000 / 60 / 60 / 24
-			: 7;
+		const awayTeamLastGameDate = (await gameRepo.findOne({
+			where: [{
+				homeTeamId: game.awayTeamId,
+				startDateTime: LessThan(game.startDateTime)
+			}, {
+				awayTeamId: game.awayTeamId,
+				startDateTime: LessThan(game.startDateTime)
+			}],
+			order: {
+				startDateTime: 'DESC'
+			}
+		}))?.startDateTime.getTime();
+
+		let homeBreak = 7;
+		let awayBreak = 7;
+
+		if (homeTeamLastGameDate !== null && homeTeamLastGameDate !== undefined) {
+			homeBreak = (game.startDateTime.getTime() - homeTeamLastGameDate) / 1000 / 60 / 60 / 24;
+		}
+
+		if (awayTeamLastGameDate !== null && awayTeamLastGameDate !== undefined) {
+			awayBreak = (game.startDateTime.getTime() - awayTeamLastGameDate) / 1000 / 60 / 60 / 24;
+		}
 
 		const homeElo = homeTeamElo?.eloScore ?? 1500;
 		const awayElo = awayTeamElo?.eloScore ?? 1500;
@@ -108,129 +137,82 @@ export default function GameRoutes (
 }
 
 function sortChances (a: SimPlayoffChance, b: SimPlayoffChance): number {
-	if (a.team?.simPlayoffChance !== undefined && b.team?.simPlayoffChance !== undefined &&
-		a.team?.simDivLeaderChance !== undefined && b.team?.simDivLeaderChance !== undefined &&
-		a.team?.simConfLeaderChance !== undefined && b.team?.simConfLeaderChance !== undefined
+	const aTotalDiff = totalChanceDiff(a);
+	const bTotalDiff = totalChanceDiff(b);
+
+	if (aTotalDiff > bTotalDiff) {
+		return -1;
+	} else if (aTotalDiff < bTotalDiff) {
+		return 1;
+	}
+
+	return 0;
+}
+
+function totalChanceDiff (chance: SimPlayoffChance): number {
+	if (chance.team?.simPlayoffChance !== undefined &&
+		chance.team?.simDivLeaderChance !== undefined &&
+		chance.team?.simConfLeaderChance !== undefined
 	) {
-		let aPlayoffChanceDiff = a.playoffChanceWithHomeWin > a.playoffChanceWithAwayWin
-			? (a.playoffChanceWithHomeWin / a.playoffChanceWithAwayWin) - 1
-			: (a.playoffChanceWithAwayWin / a.playoffChanceWithHomeWin) - 1;
-		let bPlayoffChanceDiff = b.playoffChanceWithHomeWin > b.playoffChanceWithAwayWin
-			? (b.playoffChanceWithHomeWin / b.playoffChanceWithAwayWin) - 1
-			: (b.playoffChanceWithAwayWin / b.playoffChanceWithHomeWin) - 1;
-		let aDivLeaderChanceDiff = a.divLeaderChanceWithHomeWin > a.divLeaderChanceWithAwayWin
-			? (a.divLeaderChanceWithHomeWin / a.divLeaderChanceWithAwayWin) - 1
-			: (a.divLeaderChanceWithAwayWin / a.divLeaderChanceWithHomeWin) - 1;
-		let bDivLeaderChanceDiff = b.divLeaderChanceWithHomeWin > b.divLeaderChanceWithAwayWin
-			? (b.divLeaderChanceWithHomeWin / b.divLeaderChanceWithAwayWin) - 1
-			: (b.divLeaderChanceWithAwayWin / b.divLeaderChanceWithHomeWin) - 1;
-		let aConfLeaderChanceDiff = a.confLeaderChanceWithHomeWin > a.confLeaderChanceWithAwayWin
-			? (a.confLeaderChanceWithHomeWin / a.confLeaderChanceWithAwayWin) - 1
-			: (a.confLeaderChanceWithAwayWin / a.confLeaderChanceWithHomeWin) - 1;
-		let bConfLeaderChanceDiff = b.confLeaderChanceWithHomeWin > b.confLeaderChanceWithAwayWin
-			? (b.confLeaderChanceWithHomeWin / b.confLeaderChanceWithAwayWin) - 1
-			: (b.confLeaderChanceWithAwayWin / b.confLeaderChanceWithHomeWin) - 1;
-		let aMakeDivChanceDiff = a.makeDivChanceWithHomeWin > a.makeDivChanceWithAwayWin
-			? (a.makeDivChanceWithHomeWin / a.makeDivChanceWithAwayWin) - 1
-			: (a.makeDivChanceWithAwayWin / a.makeDivChanceWithHomeWin) - 1;
-		let bMakeDivChanceDiff = b.makeDivChanceWithHomeWin > b.makeDivChanceWithAwayWin
-			? (b.makeDivChanceWithHomeWin / b.makeDivChanceWithAwayWin) - 1
-			: (b.makeDivChanceWithAwayWin / b.makeDivChanceWithHomeWin) - 1;
-		let aDivWinnerChanceDiff = a.divWinnerChanceWithHomeWin > a.divWinnerChanceWithAwayWin
-			? (a.divWinnerChanceWithHomeWin / a.divWinnerChanceWithAwayWin) - 1
-			: (a.divWinnerChanceWithAwayWin / a.divWinnerChanceWithHomeWin) - 1;
-		let bDivWinnerChanceDiff = b.divWinnerChanceWithHomeWin > b.divWinnerChanceWithAwayWin
-			? (b.divWinnerChanceWithHomeWin / b.divWinnerChanceWithAwayWin) - 1
-			: (b.divWinnerChanceWithAwayWin / b.divWinnerChanceWithHomeWin) - 1;
-		let aConfWinnerChanceDiff = a.confWinnerChanceWithHomeWin > a.confWinnerChanceWithAwayWin
-			? (a.confWinnerChanceWithHomeWin / a.confWinnerChanceWithAwayWin) - 1
-			: (a.confWinnerChanceWithAwayWin / a.confWinnerChanceWithHomeWin) - 1;
-		let bConfWinnerChanceDiff = b.confWinnerChanceWithHomeWin > b.confWinnerChanceWithAwayWin
-			? (b.confWinnerChanceWithHomeWin / b.confWinnerChanceWithAwayWin) - 1
-			: (b.confWinnerChanceWithAwayWin / b.confWinnerChanceWithHomeWin) - 1;
-		let aSuperBowlWinnerChanceDiff = a.superBowlWinnerChanceWithHomeWin > a.superBowlWinnerChanceWithAwayWin
-			? (a.superBowlWinnerChanceWithHomeWin / a.superBowlWinnerChanceWithAwayWin) - 1
-			: (a.superBowlWinnerChanceWithAwayWin / a.superBowlWinnerChanceWithHomeWin) - 1;
-		let bSuperBowlWinnerChanceDiff = b.superBowlWinnerChanceWithHomeWin > b.superBowlWinnerChanceWithAwayWin
-			? (b.superBowlWinnerChanceWithHomeWin / b.superBowlWinnerChanceWithAwayWin) - 1
-			: (b.superBowlWinnerChanceWithAwayWin / b.superBowlWinnerChanceWithHomeWin) - 1;
+		let playoffChanceDiff = chance.playoffChanceWithHomeWin > chance.playoffChanceWithAwayWin
+			? (chance.playoffChanceWithHomeWin / chance.playoffChanceWithAwayWin) - 1
+			: (chance.playoffChanceWithAwayWin / chance.playoffChanceWithHomeWin) - 1;
+		let divLeaderChanceDiff = chance.divLeaderChanceWithHomeWin > chance.divLeaderChanceWithAwayWin
+			? (chance.divLeaderChanceWithHomeWin / chance.divLeaderChanceWithAwayWin) - 1
+			: (chance.divLeaderChanceWithAwayWin / chance.divLeaderChanceWithHomeWin) - 1;
+		let confLeaderChanceDiff = chance.confLeaderChanceWithHomeWin > chance.confLeaderChanceWithAwayWin
+			? (chance.confLeaderChanceWithHomeWin / chance.confLeaderChanceWithAwayWin) - 1
+			: (chance.confLeaderChanceWithAwayWin / chance.confLeaderChanceWithHomeWin) - 1;
+		let makeDivChanceDiff = chance.makeDivChanceWithHomeWin > chance.makeDivChanceWithAwayWin
+			? (chance.makeDivChanceWithHomeWin / chance.makeDivChanceWithAwayWin) - 1
+			: (chance.makeDivChanceWithAwayWin / chance.makeDivChanceWithHomeWin) - 1;
+		let divWinnerChanceDiff = chance.divWinnerChanceWithHomeWin > chance.divWinnerChanceWithAwayWin
+			? (chance.divWinnerChanceWithHomeWin / chance.divWinnerChanceWithAwayWin) - 1
+			: (chance.divWinnerChanceWithAwayWin / chance.divWinnerChanceWithHomeWin) - 1;
+		let confWinnerChanceDiff = chance.confWinnerChanceWithHomeWin > chance.confWinnerChanceWithAwayWin
+			? (chance.confWinnerChanceWithHomeWin / chance.confWinnerChanceWithAwayWin) - 1
+			: (chance.confWinnerChanceWithAwayWin / chance.confWinnerChanceWithHomeWin) - 1;
+		let superBowlWinnerChanceDiff = chance.superBowlWinnerChanceWithHomeWin > chance.superBowlWinnerChanceWithAwayWin
+			? (chance.superBowlWinnerChanceWithHomeWin / chance.superBowlWinnerChanceWithAwayWin) - 1
+			: (chance.superBowlWinnerChanceWithAwayWin / chance.superBowlWinnerChanceWithHomeWin) - 1;
 
-		if (Number.isNaN(aPlayoffChanceDiff)) {
-			aPlayoffChanceDiff = 0;
+		if (Number.isNaN(playoffChanceDiff)) {
+			playoffChanceDiff = 0;
 		}
 
-		if (Number.isNaN(bPlayoffChanceDiff)) {
-			bPlayoffChanceDiff = 0;
+		if (Number.isNaN(divLeaderChanceDiff)) {
+			divLeaderChanceDiff = 0;
 		}
 
-		if (Number.isNaN(aDivLeaderChanceDiff)) {
-			aDivLeaderChanceDiff = 0;
+		if (Number.isNaN(confLeaderChanceDiff)) {
+			confLeaderChanceDiff = 0;
 		}
 
-		if (Number.isNaN(bDivLeaderChanceDiff)) {
-			bDivLeaderChanceDiff = 0;
+		if (Number.isNaN(makeDivChanceDiff)) {
+			makeDivChanceDiff = 0;
 		}
 
-		if (Number.isNaN(aConfLeaderChanceDiff)) {
-			aConfLeaderChanceDiff = 0;
+		if (Number.isNaN(divWinnerChanceDiff)) {
+			divWinnerChanceDiff = 0;
 		}
 
-		if (Number.isNaN(bConfLeaderChanceDiff)) {
-			bConfLeaderChanceDiff = 0;
+		if (Number.isNaN(confWinnerChanceDiff)) {
+			confWinnerChanceDiff = 0;
 		}
 
-		if (Number.isNaN(aMakeDivChanceDiff)) {
-			aMakeDivChanceDiff = 0;
+		if (Number.isNaN(superBowlWinnerChanceDiff)) {
+			superBowlWinnerChanceDiff = 0;
 		}
 
-		if (Number.isNaN(bMakeDivChanceDiff)) {
-			bMakeDivChanceDiff = 0;
-		}
+		const totalDiff = playoffChanceDiff +
+			divLeaderChanceDiff +
+			confLeaderChanceDiff +
+			makeDivChanceDiff +
+			divWinnerChanceDiff +
+			confWinnerChanceDiff +
+			superBowlWinnerChanceDiff;
 
-		if (Number.isNaN(aDivWinnerChanceDiff)) {
-			aDivWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(bDivWinnerChanceDiff)) {
-			bDivWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(aConfWinnerChanceDiff)) {
-			aConfWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(bConfWinnerChanceDiff)) {
-			bConfWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(aSuperBowlWinnerChanceDiff)) {
-			aSuperBowlWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(bSuperBowlWinnerChanceDiff)) {
-			bSuperBowlWinnerChanceDiff = 0;
-		}
-
-		const aTotalDiff = aPlayoffChanceDiff +
-			aDivLeaderChanceDiff +
-			aConfLeaderChanceDiff +
-			aMakeDivChanceDiff +
-			aDivWinnerChanceDiff +
-			aConfWinnerChanceDiff +
-			aSuperBowlWinnerChanceDiff;
-		const bTotalDiff = bPlayoffChanceDiff +
-			bDivLeaderChanceDiff +
-			bConfLeaderChanceDiff +
-			bMakeDivChanceDiff +
-			bDivWinnerChanceDiff +
-			bConfWinnerChanceDiff +
-			bSuperBowlWinnerChanceDiff;
-
-		if (aTotalDiff > bTotalDiff) {
-			return -1;
-		} else if (aTotalDiff < bTotalDiff) {
-			return 1;
-		}
+		return totalDiff;
 	}
 
 	return 0;

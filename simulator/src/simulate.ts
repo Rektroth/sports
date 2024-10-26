@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import { IsNull, MoreThan } from 'typeorm';
+import { IsNull, LessThan, MoreThan, Or } from 'typeorm';
 import { chance, newElo, Outcome } from '@rektroth/elo';
 import {
 	SportsDataSource,
@@ -23,7 +23,7 @@ const DB_PORT = isNaN(Number(process.env.DB_PORT)) ? 5432 : Number(process.env.D
 const DB_USERNAME = process.env.DB_USERNAME ?? 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD ?? 'postgres';
 const SUPER_BOWL_HOST = process.env.SUPER_BOWL_HOST ?? 1;
-const MARGIN = isNaN(Number(process.env.MARGIN)) ? 0.05 : Number(process.env.MARGIN);
+const CONFIDENCE_INTERVAL = isNaN(Number(process.env.CONFIDENCE_INTERVAL)) ? 2.576 : Number(process.env.CONFIDENCE_INTERVAL);
 
 const simDataSource = SportsDataSource(DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
 const conferenceRepo = simDataSource.getRepository(Conference);
@@ -54,13 +54,9 @@ export default async function main (): Promise<void> {
 
 	console.log('Deleting existing simulations...');
 
-	const games = await gameRepo.findBy([{
-		season: CURRENT_SEASON,
-		seasonType: SeasonType.REGULAR
-	}, {
-		season: CURRENT_SEASON,
-		seasonType: SeasonType.POST
-	}]);
+	const games = await gameRepo.findBy({
+		season: CURRENT_SEASON
+	});
 
 	console.log(`Simulating ${SIMS} seasons...`);
 
@@ -101,14 +97,20 @@ export default async function main (): Promise<void> {
 	console.log('Analyzing games...');
 	teams = await teamRepo.find();
 
+	const nextGameDate = games.filter(g => g.homeTeamScore === null)[0].startDateTime;
+	const nextGameDay = nextGameDate.getDay();
+	const adj = nextGameDay > 3 ? 10 - nextGameDay : 3 - nextGameDay;
+	nextGameDate.setDate(nextGameDate.getDate() + adj);
+	nextGameDate.setHours(8);
+
 	const soonGames = await gameRepo.find({
 		where: {
-			homeTeamScore: IsNull()
+			homeTeamScore: IsNull(),
+			startDateTime: LessThan(nextGameDate)
 		},
 		order: {
 			startDateTime: 'ASC'
-		},
-		take: 16
+		}
 	});
 
 	for (let i = 0; i < soonGames.length; i++) {
@@ -128,9 +130,142 @@ async function simulate (
 	sim: number
 ): Promise<void> {
 	games = games.sort((a, b) => a.startDateTime > b.startDateTime ? 1 : a.startDateTime < b.startDateTime ? -1 : 0);
+	const preSeasonGames = games.filter(g => g.seasonType === SeasonType.PRE);
 	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
 	const postSeasonGames = games.filter(g => g.seasonType === SeasonType.POST);
 	const teams = teamEntities.map(t => new SimTeam(t));
+
+	for (let i = 0; i < preSeasonGames.length; i++) {
+		const game = preSeasonGames[i];
+		let winnerId = null;
+
+		if (game.homeTeamScore == null) {
+			const homeTeam = teams.find(t => t.id === game.homeTeamId);
+			const awayTeam = teams.find(t => t.id === game.awayTeamId);
+			const homeLastGame = homeTeam?.lastGame ?? null;
+			const awayLastGame = awayTeam?.lastGame ?? null;
+			let homeBreak = homeLastGame !== null
+				? (game.startDateTime.getTime() - homeLastGame.getTime()) / 1000 / 60 / 60 / 24
+				: 7;
+			let awayBreak = awayLastGame !== null
+				? (game.startDateTime.getTime() - awayLastGame.getTime()) / 1000 / 60 / 60 / 24
+				: 7;
+			homeBreak = homeBreak < 20 ? homeBreak : 7;
+			awayBreak = awayBreak < 20 ? awayBreak : 7;
+			const homeElo = homeTeam?.elo ?? 1500;
+			const awayElo = awayTeam?.elo ?? 1500;
+			const homeTeamChance = chance(
+				homeElo,
+				awayElo,
+				!game.neutralSite,
+				false,
+				game.seasonType,
+				homeBreak,
+				awayBreak);
+			const awayTeamChance = chance(
+				awayElo,
+				homeElo,
+				false,
+				!game.neutralSite,
+				game.seasonType,
+				awayBreak,
+				homeBreak);
+			const added =  Number(homeTeamChance) + Number(awayTeamChance);
+			const r = Math.random();
+
+			if (r < homeTeamChance) {
+				winnerId = game.homeTeamId;
+				
+				if (homeTeam !== undefined) {
+					homeTeam.elo = newElo(
+						homeTeam.elo,
+						awayTeam?.elo ?? 1500,
+						!game.neutralSite,
+						false,
+						game.seasonType,
+						homeBreak,
+						awayBreak,
+						Outcome.WIN);
+				}
+
+				if (awayTeam !== undefined) {
+					awayTeam.elo = newElo(
+						awayTeam.elo,
+						homeTeam?.elo ?? 1500,
+						false,
+						!game.neutralSite,
+						game.seasonType,
+						awayBreak,
+						homeBreak,
+						Outcome.LOSS);
+				}
+			} else if (r < added) {
+				winnerId = game.awayTeamId;
+				
+				if (homeTeam !== undefined) {
+					homeTeam.elo = newElo(
+						homeTeam.elo,
+						awayTeam?.elo ?? 1500,
+						!game.neutralSite,
+						false,
+						game.seasonType,
+						homeBreak,
+						awayBreak,
+						Outcome.LOSS);
+				}
+
+				if (awayTeam !== undefined) {
+					awayTeam.elo = newElo(
+						awayTeam.elo,
+						homeTeam?.elo ?? 1500,
+						false,
+						!game.neutralSite,
+						game.seasonType,
+						awayBreak,
+						homeBreak,
+						Outcome.WIN);
+				}
+			} else {
+				if (homeTeam !== undefined) {
+					homeTeam.elo = newElo(
+						homeTeam.elo,
+						awayTeam?.elo ?? 1500,
+						!game.neutralSite,
+						false,
+						game.seasonType,
+						homeBreak,
+						awayBreak,
+						Outcome.TIE);
+				}
+
+				if (awayTeam !== undefined) {
+					awayTeam.elo = newElo(
+						awayTeam.elo,
+						homeTeam?.elo ?? 1500,
+						false,
+						!game.neutralSite,
+						game.seasonType,
+						awayBreak,
+						homeBreak,
+						Outcome.TIE);
+				}
+			}
+
+			if (homeTeam !== undefined) {
+				homeTeam.lastGame = game.startDateTime;
+			}
+
+			if (awayTeam !== undefined) {
+				awayTeam.lastGame = game.startDateTime;
+			}
+		}
+
+		simGames.push({
+			gameId: game.id,
+			simSeasonId: sim,
+			winningTeamId: winnerId ?? undefined
+		});
+	}
 
 	for (let i = 0; i < regSeasonGames.length; i++) {
 		const game = regSeasonGames[i];
@@ -626,10 +761,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let playoffChanceIfHomeWins = numAppearancesWithHomeWins / numHomeWins;
 		let playoffChanceIfAwayWins = numAppearancesWithAwayWins / numAwayWins;
-		const playoffDiff = Math.abs(playoffChanceIfHomeWins - playoffChanceIfAwayWins);
 
-		if (playoffDiff / (teams[i].simPlayoffChance ?? 1) < MARGIN) {
+		if (Math.abs(playoffChanceIfHomeWins - (teams[i].simPlayoffChance ?? 1)) < marginOfError(playoffChanceIfHomeWins, numHomeWins)) {
 			playoffChanceIfHomeWins = teams[i].simPlayoffChance ?? 0;
+		}
+
+		if (Math.abs(playoffChanceIfAwayWins - (teams[i].simPlayoffChance ?? 1)) < marginOfError(playoffChanceIfAwayWins, numAwayWins)) {
 			playoffChanceIfAwayWins = teams[i].simPlayoffChance ?? 0;
 		}
 
@@ -643,10 +780,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let divLeaderChanceIfHomeWins = numDivLeaderWithHomeWins / numHomeWins;
 		let divLeaderChanceIfAwayWins = numDivLeaderWithAwayWins / numAwayWins;
-		const divLeaderDiff = Math.abs(divLeaderChanceIfHomeWins - divLeaderChanceIfAwayWins);
-
-		if (divLeaderDiff / (teams[i].simDivLeaderChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(divLeaderChanceIfHomeWins - (teams[i].simDivLeaderChance ?? 1)) < marginOfError(divLeaderChanceIfHomeWins, numHomeWins)) {
 			divLeaderChanceIfHomeWins = teams[i].simDivLeaderChance ?? 0;
+		}
+
+		if (Math.abs(divLeaderChanceIfAwayWins - (teams[i].simDivLeaderChance ?? 1)) < marginOfError(divLeaderChanceIfAwayWins, numAwayWins)) {
 			divLeaderChanceIfAwayWins = teams[i].simDivLeaderChance ?? 0;
 		}
 
@@ -660,10 +799,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let confLeaderChanceIfHomeWins = numConfLeaderWithHomeWins / numHomeWins;
 		let confLeaderChanceIfAwayWins = numConfLeaderWithAwayWins / numAwayWins;
-		const confLeaderDiff = Math.abs(confLeaderChanceIfHomeWins - confLeaderChanceIfAwayWins);
 
-		if (confLeaderDiff / (teams[i].simConfLeaderChance ?? 1) < MARGIN) {
+		if (Math.abs(confLeaderChanceIfHomeWins - (teams[i].simConfLeaderChance ?? 1)) < marginOfError(confLeaderChanceIfHomeWins, numAwayWins)) {
 			confLeaderChanceIfHomeWins = teams[i].simConfLeaderChance ?? 0;
+		}
+		
+		if (Math.abs(confLeaderChanceIfAwayWins - (teams[i].simConfLeaderChance ?? 1)) < marginOfError(confLeaderChanceIfAwayWins, numHomeWins)) {
 			confLeaderChanceIfAwayWins = teams[i].simConfLeaderChance ?? 0;
 		}
 
@@ -677,10 +818,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let makeDivChanceIfHomeWins = numMakeDivWithHomeWins / numHomeWins;
 		let makeDivChanceIfAwayWins = numMakeDivWithAwayWins / numAwayWins;
-		const makeDivDiff = Math.abs(makeDivChanceIfHomeWins - makeDivChanceIfAwayWins);
-
-		if (makeDivDiff / (teams[i].simMakeDivChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(makeDivChanceIfHomeWins - (teams[i].simMakeDivChance ?? 1)) < marginOfError(makeDivChanceIfHomeWins, numAwayWins)) {
 			makeDivChanceIfHomeWins = teams[i].simMakeDivChance ?? 0;
+		}
+		
+		if (Math.abs(makeDivChanceIfAwayWins - (teams[i].simMakeDivChance ?? 1)) < marginOfError(makeDivChanceIfAwayWins, numHomeWins)) {
 			makeDivChanceIfAwayWins = teams[i].simMakeDivChance ?? 0;
 		}
 
@@ -694,10 +837,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let hostDivChanceIfHomeWins = numHostDivWithHomeWins / numHomeWins;
 		let hostDivChanceIfAwayWins = numHostDivWithAwayWins / numAwayWins;
-		const hostDivDiff = Math.abs(hostDivChanceIfHomeWins - hostDivChanceIfAwayWins);
-
-		if (hostDivDiff / (teams[i].simHostDivChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(hostDivChanceIfHomeWins - (teams[i].simHostDivChance ?? 1)) < marginOfError(hostDivChanceIfHomeWins, numAwayWins)) {
 			hostDivChanceIfHomeWins = teams[i].simHostDivChance ?? 0;
+		}
+		
+		if (Math.abs(hostDivChanceIfAwayWins - (teams[i].simHostDivChance ?? 1)) < marginOfError(hostDivChanceIfAwayWins, numHomeWins)) {
 			hostDivChanceIfAwayWins = teams[i].simHostDivChance ?? 0;
 		}
 
@@ -711,10 +856,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let divWinnerChanceIfHomeWins = numDivWinnerWithHomeWins / numHomeWins;
 		let divWinnerChanceIfAwayWins = numDivWinnerWithAwayWins / numAwayWins;
-		const divWinnerDiff = Math.abs(divWinnerChanceIfHomeWins - divWinnerChanceIfAwayWins);
-
-		if (divWinnerDiff / (teams[i].simWinDivChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(divWinnerChanceIfHomeWins - (teams[i].simWinDivChance ?? 1)) < marginOfError(divWinnerChanceIfHomeWins, numAwayWins)) {
 			divWinnerChanceIfHomeWins = teams[i].simWinDivChance ?? 0;
+		}
+		
+		if (Math.abs(divWinnerChanceIfAwayWins - (teams[i].simWinDivChance ?? 1)) < marginOfError(divWinnerChanceIfAwayWins, numHomeWins)) {
 			divWinnerChanceIfAwayWins = teams[i].simWinDivChance ?? 0;
 		}
 
@@ -728,10 +875,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let hostConfChanceIfHomeWins = numHostConfWithHomeWins / numHomeWins;
 		let hostConfChanceIfAwayWins = numHostConfWithAwayWins / numAwayWins;
-		const hostConfDiff = Math.abs(hostConfChanceIfHomeWins - hostConfChanceIfAwayWins);
-
-		if (hostConfDiff / (teams[i].simHostConfChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(hostConfChanceIfHomeWins - (teams[i].simHostConfChance ?? 1)) < marginOfError(hostConfChanceIfHomeWins, numAwayWins)) {
 			hostConfChanceIfHomeWins = teams[i].simHostConfChance ?? 0;
+		}
+		
+		if (Math.abs(hostConfChanceIfAwayWins - (teams[i].simHostConfChance ?? 1)) < marginOfError(hostConfChanceIfAwayWins, numHomeWins)) {
 			hostConfChanceIfAwayWins = teams[i].simHostConfChance ?? 0;
 		}
 
@@ -745,10 +894,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let confWinnerChanceIfHomeWins = numConfWinnerWithHomeWins / numHomeWins;
 		let confWinnerChanceIfAwayWins = numConfWinnerWithAwayWins / numAwayWins;
-		const confWinnerDiff = Math.abs(confWinnerChanceIfHomeWins - confWinnerChanceIfAwayWins);
-
-		if (confWinnerDiff / (teams[i].simWinConfChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(confWinnerChanceIfHomeWins - (teams[i].simWinConfChance ?? 1)) < marginOfError(confWinnerChanceIfHomeWins, numAwayWins)) {
 			confWinnerChanceIfHomeWins = teams[i].simWinConfChance ?? 0;
+		}
+		
+		if (Math.abs(confWinnerChanceIfAwayWins - (teams[i].simWinConfChance ?? 1)) < marginOfError(confWinnerChanceIfAwayWins, numHomeWins)) {
 			confWinnerChanceIfAwayWins = teams[i].simWinConfChance ?? 0;
 		}
 
@@ -762,10 +913,12 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 			.length;
 		let superBowlWinnerChanceIfHomeWins = numSuperBowlWinnerWithHomeWins / numHomeWins;
 		let superBowlWinnerChanceIfAwayWins = numSuperBowlWinnerWithAwayWins / numAwayWins;
-		const superBowlWinnerDiff = Math.abs(superBowlWinnerChanceIfHomeWins - superBowlWinnerChanceIfAwayWins);
-
-		if (superBowlWinnerDiff / (teams[i].simWinSuperBowlChance ?? 1) < MARGIN) {
+		
+		if (Math.abs(superBowlWinnerChanceIfHomeWins - (teams[i].simWinSuperBowlChance ?? 1)) < marginOfError(superBowlWinnerChanceIfHomeWins, numAwayWins)) {
 			superBowlWinnerChanceIfHomeWins = teams[i].simWinSuperBowlChance ?? 0;
+		}
+		
+		if (Math.abs(superBowlWinnerChanceIfAwayWins - (teams[i].simWinSuperBowlChance ?? 1)) < marginOfError(superBowlWinnerChanceIfAwayWins, numHomeWins)) {
 			superBowlWinnerChanceIfAwayWins = teams[i].simWinSuperBowlChance ?? 0;
 		}
 
@@ -884,4 +1037,8 @@ function printProgress (progress: string): void {
 	process.stdout.clearLine(0);
 	process.stdout.cursorTo(0);
 	process.stdout.write(progress.substring(0, 5) + '%');
+}
+
+function marginOfError (p: number, n: number): number {
+	return CONFIDENCE_INTERVAL * Math.sqrt((p * (1 - p)) / n);
 }

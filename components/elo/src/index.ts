@@ -21,7 +21,7 @@ export enum Outcome {
 }
 
 export function equalize (elo: number): number {
-	return Math.round(((elo - AVG_SCORE) * EQL_MULT) + AVG_SCORE);
+	return ((elo - AVG_SCORE) * EQL_MULT) + AVG_SCORE;
 }
 
 function breakBias (days: number): number {
@@ -49,8 +49,9 @@ export function chance (
 		: oppElo + breakBias(oppDaysSinceLastGame);
 	const notTieChance = seasonType === SeasonType.POST ? 1 : 1 - TIE_CHANCE;
 	const multiplier = seasonType === SeasonType.PRE ? PRE_MULT : seasonType === SeasonType.POST ? POST_MULT : 1;
-	const difference = multiplier * (biasedOppElo - biasedTeamElo);
-	return notTieChance * (1 / (1 + Math.pow(10, difference / 400)));
+	const diff = multiplier * (biasedOppElo - biasedTeamElo);
+	const r = notTieChance * (1 / (1 + Math.pow(10, diff / 400)));
+	return r;
 }
 
 export function newElo (
@@ -72,5 +73,6 @@ export function newElo (
 		daysSinceLastGame,
 		oppDaysSinceLastGame);
 	const w = outcome === Outcome.WIN ? 1 : outcome === Outcome.LOSS ? 0 : 0.5;
-	return Math.round(teamElo + (K * (w - c)));
+	const r = teamElo + (K * (w - c));
+	return r;
 }
