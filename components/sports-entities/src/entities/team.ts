@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 import Division from './division';
 import Game from './game';
+import TeamChances from './teamchances';
 import TeamChancesByGame from './teamchancesbygame';
 import TeamElo from './teamelo';
 
@@ -39,4 +40,7 @@ export default class Team {
 
 	@OneToMany(() => TeamElo, (teamElo) => teamElo.team)
 		eloScores?: TeamElo[];
+	
+	@OneToMany(() => TeamChances, (teamChances) => teamChances.team)
+		chances?: TeamChances[];
 }

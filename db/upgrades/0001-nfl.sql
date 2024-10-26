@@ -50,7 +50,6 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 		team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE,
 		season SMALLINT NOT NULL,
 		week SMALLINT NOT NULL CHECK (week >= 1),
-		season_type SEASONTYPE NOT NULL DEFAULT 'regular',
 		seed7 DOUBLE PRECISION CHECK (seed7 IS NULL OR (seed7 >= 0 AND seed7 <= 1)),
 		seed6 DOUBLE PRECISION CHECK (seed6 IS NULL OR (seed6 >= 0 AND seed6 <= 1)),
 		seed5 DOUBLE PRECISION CHECK (seed5 IS NULL OR (seed5 >= 0 AND seed5 <= 1)),
@@ -65,7 +64,7 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 		make_conf DOUBLE PRECISION CHECK (make_conf IS NULL OR (make_conf >= 0 AND make_conf <= 1)),
 		make_sb DOUBLE PRECISION CHECK (make_sb IS NULL OR (make_sb >= 0 AND make_sb <= 1)),
 		win_sb DOUBLE PRECISION CHECK (win_sb IS NULL OR (win_sb >= 0 AND win_sb <= 1)),
-		PRIMARY KEY (team_id, season, week, season_type)
+		PRIMARY KEY (team_id, season, week)
 	);
 
 	CREATE TABLE nfl.team_chances_by_game (
