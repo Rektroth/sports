@@ -64,7 +64,7 @@ async function updateGames (): Promise<void> {
 
 	const teamIds = (await teamRepo.find()).map(t => t.id);
 	const existingGameIds = (await gameRepo.find()).map(g => Number(g.id));
-	const existingUnplayedGameIds = (await gameRepo.findBy({ homeTeamScore: IsNull() })).map((g) => Number(g.id));
+	const existingUnplayedGameIds = (await gameRepo.findBy({ homeScore: IsNull() })).map((g) => Number(g.id));
 
 	const completedGames = games.filter(g =>
 		(g.season.type === PRE_SEASON || g.season.type === REGULAR_SEASON || g.season.type === POST_SEASON) &&
@@ -125,9 +125,9 @@ async function updateGames (): Promise<void> {
 				: SeasonType.REGULAR;
 		const homeTeamId = Number(game.competitions[0].competitors.find(c => c.homeAway === HOME)?.id);
 		const awayTeamId = Number(game.competitions[0].competitors.find(c => c.homeAway === AWAY)?.id);
-		const homeTeamScore = Number(game.competitions[0].competitors
+		const homeScore = Number(game.competitions[0].competitors
 			.find(c => c.homeAway === HOME)?.score);
-		const awayTeamScore = Number(game.competitions[0].competitors
+		const awayScore = Number(game.competitions[0].competitors
 			.find(c => c.homeAway === AWAY)?.score);
 
 		await gameRepo.insert({
@@ -136,8 +136,8 @@ async function updateGames (): Promise<void> {
 			startDateTime,
 			homeTeamId,
 			awayTeamId,
-			homeTeamScore,
-			awayTeamScore,
+			homeScore,
+			awayScore,
 			seasonType,
 			neutralSite,
 			week
@@ -195,8 +195,8 @@ async function updateGames (): Promise<void> {
 async function updateEloScores (): Promise<void> {
 	const games = await gameRepo.find({
 		where: {
-			homeTeamScore: Not(IsNull()),
-			awayTeamScore: Not(IsNull())
+			homeScore: Not(IsNull()),
+			awayScore: Not(IsNull())
 		},
 		order: {
 			startDateTime: 'ASC'
@@ -284,14 +284,14 @@ async function updateEloScores (): Promise<void> {
 			});
 		}
 
-		const homeTeamOutcome = game.homeTeamScore > game.awayTeamScore
+		const homeTeamOutcome = game.homeScore > game.awayScore
 			? Outcome.WIN
-			: game.homeTeamScore < game.awayTeamScore
+			: game.homeScore < game.awayScore
 				? Outcome.LOSS
 				: Outcome.TIE;
-		const awayTeamOutcome = game.homeTeamScore < game.awayTeamScore
+		const awayTeamOutcome = game.homeScore < game.awayScore
 			? Outcome.WIN
-			: game.homeTeamScore > game.awayTeamScore
+			: game.homeScore > game.awayScore
 				? Outcome.LOSS
 				: Outcome.TIE;
 
