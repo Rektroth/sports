@@ -21,12 +21,13 @@ const REGULAR_SEASON = 2;
 const POST_SEASON = 3;
 const HOME = 'home';
 const AWAY = 'away';
+const SCHEMA = 'nfl';
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = isNaN(Number(process.env.DB_PORT)) ? 5432 : Number(process.env.DB_PORT);
 const DB_USERNAME = process.env.DB_USERNAME ?? 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD ?? 'postgres';
 
-const dataSource = SportsDataSource(DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
+const dataSource = SportsDataSource(SCHEMA, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
 const eloRepo = dataSource.getRepository(TeamElo);
 const gameRepo = dataSource.getRepository(Game);
 const teamRepo = dataSource.getRepository(Team);
@@ -116,6 +117,7 @@ async function updateGames (): Promise<void> {
 		const startDateTime = new Date(game.competitions[0].date);
 		const neutralSite = game.competitions[0].neutralSite;
 		const season = game.season.year;
+		const week = game.week.number;
 		const seasonType = game.season.type === PRE_SEASON
 			? SeasonType.PRE
 			: game.season.type === POST_SEASON
@@ -137,7 +139,8 @@ async function updateGames (): Promise<void> {
 			homeTeamScore,
 			awayTeamScore,
 			seasonType,
-			neutralSite
+			neutralSite,
+			week
 		});
 	}
 
@@ -160,6 +163,7 @@ async function updateGames (): Promise<void> {
 		const startDateTime = new Date(game.header.competitions[0].date);
 		const neutralSite = game.header.competitions[0].neutralSite;
 		const season = game.header.season.year;
+		const week = game.header.week.number;
 		const seasonType = game.header.season.type === PRE_SEASON
 			? SeasonType.PRE
 			: game.header.season.type === POST_SEASON
@@ -175,7 +179,8 @@ async function updateGames (): Promise<void> {
 			homeTeamId,
 			awayTeamId,
 			seasonType,
-			neutralSite
+			neutralSite,
+			week
 		});
 	}
 
@@ -339,7 +344,8 @@ class EspnSummary {
 	header: {
 		id: string
 		competitions: EspnCompetition[]
-		season: EspnSeason
+		season: EspnSeason,
+		week: EspnWeek
 	};
 
 	predictor?: {
@@ -358,6 +364,7 @@ class EspnEvent {
 	id: string;
 	date: string;
 	season: EspnSeason;
+	week: EspnWeek;
 	competitions: EspnCompetition[];
 	status: {
 		type: {
@@ -365,6 +372,10 @@ class EspnEvent {
 			completed: boolean
 		}
 	};
+}
+
+class EspnWeek {
+	number: number;
 }
 
 class EspnSeason {
