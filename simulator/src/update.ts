@@ -114,10 +114,10 @@ async function updateGames (): Promise<void> {
 		console.log(`Inserting completed game ${i + 1} of ${completedGamesNeedInsert.length}...`);
 		const game = completedGamesNeedInsert[i];
 		const id = Number(game.id);
-		const startDateTime = new Date(game.competitions[0].date);
+		const startDateTime = new Date(game.date);
 		const neutralSite = game.competitions[0].neutralSite;
 		const season = game.season.year;
-		const week = game.week.number;
+		const week = game.week?.number ?? 0;
 		const seasonType = game.season.type === PRE_SEASON
 			? SeasonType.PRE
 			: game.season.type === POST_SEASON
@@ -163,7 +163,7 @@ async function updateGames (): Promise<void> {
 		const startDateTime = new Date(game.header.competitions[0].date);
 		const neutralSite = game.header.competitions[0].neutralSite;
 		const season = game.header.season.year;
-		const week = game.header.week.number;
+		const week = game.header.week?.number ?? 0;
 		const seasonType = game.header.season.type === PRE_SEASON
 			? SeasonType.PRE
 			: game.header.season.type === POST_SEASON
