@@ -28,11 +28,11 @@ export default class Game {
 	@Column({ name: 'away_team_id', type: 'smallint' })
 		awayTeamId: number;
 
-	@Column({ name: 'home_team_score', type: 'smallint', nullable: true })
-		homeTeamScore: number;
+	@Column({ name: 'home_score', type: 'smallint', nullable: true })
+		homeScore: number;
 
-	@Column({ name: 'away_team_score', type: 'smallint', nullable: true })
-		awayTeamScore: number;
+	@Column({ name: 'away_score', type: 'smallint', nullable: true })
+		awayScore: number;
 
 	@Column({ name: 'season_type', type: 'enum', enum: SeasonType, default: SeasonType.REGULAR })
 		seasonType: SeasonType;

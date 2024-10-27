@@ -12,6 +12,9 @@ export default class Team {
 
 	@Column({ name: 'abbreviation', type: 'varchar', length: 3 })
 		abbreviation: string;
+	
+	@Column({ name: 'locality', type: 'varchar', length: 21 })
+		locality: string;
 
 	@Column({ name: 'name', type: 'varchar', length: 21 })
 		name: string;
