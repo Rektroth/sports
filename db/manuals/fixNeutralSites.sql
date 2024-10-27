@@ -1,4 +1,4 @@
-UPDATE game SET neutral_site = TRUE WHERE id IN (
+UPDATE nfl.game SET neutral_site = TRUE WHERE id IN (
     230126027, -- Super Bowl XXXVII
     240201017, -- Super Bowl XXXVIII
     250206021, -- Super Bowl XXXIX

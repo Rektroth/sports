@@ -1,11 +1,11 @@
 export const AVG_SCORE = 1500;	// this is arbitrary
-const HOME_BIAS = 49;			// this is based on a non-elo-related statistic
-const TIE_CHANCE = 0.002514669;	// this is based on a non-elo-related statistic
+const HOME_BIAS = 44.3;			// this is based on a non-elo-related statistic
+const TIE_CHANCE = 0.002419215;	// this is based on a non-elo-related statistic
 const BREAK_C = 4.843299;		// this is based on a non-elo-related statistic
 const BREAK_B = -30.362724;		// this is based on a non-elo-related statistic
 const K = 29;
-const PRE_MULT = 0.3;
-const POST_MULT = 1.2;
+const PRE_MULT = 0.7;
+const POST_MULT = 2.1;
 const EQL_MULT = 2 / 3;
 
 enum SeasonType {
