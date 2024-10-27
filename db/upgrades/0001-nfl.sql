@@ -13,7 +13,7 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 
 	CREATE TABLE nfl.division (
 		id SMALLINT PRIMARY KEY,
-		conference_id SMALLINT NOT NULL REFERENCES conference(id) ON DELETE CASCADE,
+		conference_id SMALLINT NOT NULL REFERENCES nfl.conference(id) ON DELETE CASCADE,
 		name VARCHAR(9) UNIQUE NOT NULL
 	);
 
@@ -21,13 +21,13 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 		id SMALLINT PRIMARY KEY,
 		abbreviation VARCHAR(3) UNIQUE NOT NULL CHECK (abbreviation ~* '^[A-Z]{2,3}$'),
 		name VARCHAR(21) UNIQUE NOT NULL,
-		division_id SMALLINT NOT NULL REFERENCES division(id) ON DELETE CASCADE,
+		division_id SMALLINT NOT NULL REFERENCES nfl.division(id) ON DELETE CASCADE,
 		color1 VARCHAR(7) NOT NULL CHECK (color1 ~* '^#[A-F0-9]{6}$'),
 		color2 VARCHAR(7) NOT NULL CHECK (color2 ~* '^#[A-F0-9]{6}$')
 	);
 
 	CREATE TABLE nfl.team_elo (
-        team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE,
+        team_id SMALLINT NOT NULL REFERENCES nfl.team(id) ON DELETE CASCADE,
         date TIMESTAMP WITH TIME ZONE NOT NULL,
         elo_score DOUBLE PRECISION NOT NULL,
         PRIMARY KEY (team_id, date)
@@ -38,16 +38,16 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 		season SMALLINT NOT NULL,
 		week SMALLINT NOT NULL CHECK (week >= 1),
 		start_date_time TIMESTAMP WITH TIME ZONE NOT NULL,
-		home_team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE CHECK (home_team_id != away_team_id),
-		away_team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE CHECK (away_team_id != home_team_id),
+		home_team_id SMALLINT NOT NULL REFERENCES nfl.team(id) ON DELETE CASCADE CHECK (home_team_id != away_team_id),
+		away_team_id SMALLINT NOT NULL REFERENCES nfl.team(id) ON DELETE CASCADE CHECK (away_team_id != home_team_id),
 		home_score SMALLINT CHECK (home_score IS NULL OR (home_score >= 0 AND home_score != 1)),
 		away_score SMALLINT CHECK (away_score IS NULL OR (away_score >= 0 AND away_score != 1)),
-		season_type SEASONTYPE NOT NULL DEFAULT 'regular',
+		season_type nfl.SEASONTYPE NOT NULL DEFAULT 'regular',
 		neutral_site BOOLEAN NOT NULL DEFAULT FALSE
 	);
 
 	CREATE TABLE nfl.team_chances (
-		team_id SMALLINT NOT NULL REFERENCES team(id) ON DELETE CASCADE,
+		team_id SMALLINT NOT NULL REFERENCES nfl.team(id) ON DELETE CASCADE,
 		season SMALLINT NOT NULL,
 		week SMALLINT NOT NULL CHECK (week >= 1),
 		seed7 DOUBLE PRECISION CHECK (seed7 IS NULL OR (seed7 >= 0 AND seed7 <= 1)),
@@ -68,8 +68,8 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 	);
 
 	CREATE TABLE nfl.team_chances_by_game (
-		game_id INT NOT NULL REFERENCES game(id) ON DELETE CASCADE,
-		team_id SMALLINT NOT NULL REFERENCES team(id),
+		game_id INT NOT NULL REFERENCES nfl.game(id) ON DELETE CASCADE,
+		team_id SMALLINT NOT NULL REFERENCES nfl.team(id),
 		away_seed7 DOUBLE PRECISION CHECK (away_seed7 IS NULL OR (away_seed7 >= 0 AND away_seed7 <= 1)),
 		away_seed6 DOUBLE PRECISION CHECK (away_seed6 IS NULL OR (away_seed6 >= 0 AND away_seed6 <= 1)),
 		away_seed5 DOUBLE PRECISION CHECK (away_seed5 IS NULL OR (away_seed5 >= 0 AND away_seed5 <= 1)),
@@ -88,7 +88,7 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 		home_seed6 DOUBLE PRECISION CHECK (home_seed6 IS NULL OR (home_seed6 >= 0 AND home_seed6 <= 1)),
 		home_seed5 DOUBLE PRECISION CHECK (home_seed5 IS NULL OR (home_seed5 >= 0 AND home_seed5 <= 1)),
 		home_seed4 DOUBLE PRECISION CHECK (home_seed4 IS NULL OR (home_seed4 >= 0 AND home_seed4 <= 1)),
-		home_seed3 DOUBLE PRECISION CHECK (home_seed3 IS NULL OR (home_seed3 >= 0 AND shome_eed3 <= 1)),
+		home_seed3 DOUBLE PRECISION CHECK (home_seed3 IS NULL OR (home_seed3 >= 0 AND home_seed3 <= 1)),
 		home_seed2 DOUBLE PRECISION CHECK (home_seed2 IS NULL OR (home_seed2 >= 0 AND home_seed2 <= 1)),
 		home_seed1 DOUBLE PRECISION CHECK (home_seed1 IS NULL OR (home_seed1 >= 0 AND home_seed1 <= 1)),
 		home_host_wc DOUBLE PRECISION CHECK (home_host_wc IS NULL OR (home_host_wc >= 0 AND home_host_wc <= 1)),
