@@ -4,7 +4,7 @@ import { type Repository, IsNull, Not } from 'typeorm';
 import {
 	type Division,
 	type Game,
-	type SimPlayoffChance,
+	type TeamChancesByGame,
 	type Team,
 	type TeamElo,
 	SeasonType
@@ -16,15 +16,20 @@ class TeamView {
 	id: number;
 	name: string;
 	division?: Division;
-	simPlayoffChance?: number;
-	simDivLeaderChance?: number;
-	simConfLeaderChance?: number;
-	simMakeDivChance?: number;
-	simHostDivChance?: number;
-	simWinDivChance?: number;
-	simHostConfChance?: number;
-	simWinConfChance?: number;
-	simWinSuperBowlChance?: number;
+	seed7Chance?: number;
+	seed6Chance?: number;
+	seed5Chance?: number;
+	seed4Chance?: number;
+	seed3Chance?: number;
+	seed2Chance?: number;
+	seed1Chance?: number;
+	hostWcChance?: number;
+	hostDivChance?: number;
+	hostConfChance?: number;
+	makeDivChance?: number;
+	makeConfChance?: number;
+	makeSbChance?: number;
+	winSbChance?: number;
 	color1: string;
 	record: string;
 	elo: number;
@@ -33,14 +38,25 @@ class TeamView {
 
 export default function TeamRoutes (
 	teamRepo: Repository<Team>,
-	chanceRepo: Repository<SimPlayoffChance>,
+	teamChancesByGameRepo: Repository<TeamChancesByGame>,
 	gameRepo: Repository<Game>,
 	eloRepo: Repository<TeamElo>
 ): Express {
 	app.get('/', async (req: Request, res: Response) => {
 		const teams = await teamRepo.find({
 			relations: {
-				division: true
+				division: true,
+				chances: true
+			},
+			where: {
+				chances: {
+					season: 2024
+				}
+			},
+			order: {
+				chances: {
+					week: 'DESC'
+				}
 			}
 		});
 
@@ -49,15 +65,18 @@ export default function TeamRoutes (
 		for (let i = 0; i < teams.length; i++) {
 			const games = await gameRepo.findBy([{
 				homeTeamId: teams[i].id,
-				homeTeamScore: Not(IsNull()),
+				homeScore: Not(IsNull()),
 				season: 2024,
 				seasonType: SeasonType.REGULAR
 			}, {
 				awayTeamId: teams[i].id,
-				awayTeamScore: Not(IsNull()),
+				awayScore: Not(IsNull()),
 				season: 2024,
 				seasonType: SeasonType.REGULAR
 			}]);
+
+			const chances = teams[i].chances?.at(0);
+			console.log(chances?.seed7);
 
 			const eloScore = await eloRepo.findOne({
 				where: {
@@ -70,22 +89,36 @@ export default function TeamRoutes (
 
 			const wonGames = games
 				.filter(g =>
-					(g.homeTeamId === teams[i].id && g.homeTeamScore > g.awayTeamScore) ||
-					(g.awayTeamId === teams[i].id && g.homeTeamScore < g.awayTeamScore))
+					(g.homeTeamId === teams[i].id && g.homeScore > g.awayScore) ||
+					(g.awayTeamId === teams[i].id && g.homeScore < g.awayScore))
 				.length;
 			const lostGames = games
 				.filter(g =>
-					(g.homeTeamId === teams[i].id && g.homeTeamScore < g.awayTeamScore) ||
-					(g.awayTeamId === teams[i].id && g.homeTeamScore > g.awayTeamScore))
+					(g.homeTeamId === teams[i].id && g.homeScore < g.awayScore) ||
+					(g.awayTeamId === teams[i].id && g.homeScore > g.awayScore))
 				.length;
 			const tiedGames = games
-				.filter(g => g.homeTeamScore === g.awayTeamScore)
+				.filter(g => g.homeScore === g.awayScore)
 				.length;
 			const pct = wonGames / (wonGames + lostGames);
 			const rec = `${wonGames}-${lostGames}` + (tiedGames > 0 ? `-${tiedGames}` : '');
 
 			teamViews.push({
 				...teams[i],
+				seed7Chance: chances?.seed7,
+				seed6Chance: chances?.seed6,
+				seed5Chance: chances?.seed5,
+				seed4Chance: chances?.seed4,
+				seed3Chance: chances?.seed3,
+				seed2Chance: chances?.seed2,
+				seed1Chance: chances?.seed1,
+				hostWcChance: chances?.hostWildCard,
+				hostDivChance: chances?.hostDivision,
+				hostConfChance: chances?.hostConference,
+				makeDivChance: chances?.makeDivision,
+				makeConfChance: chances?.makeConference,
+				makeSbChance: chances?.makeSuperBowl,
+				winSbChance: chances?.winSuperBowl,
 				record: rec,
 				elo: eloScore?.eloScore ?? 1500,
 				pct
@@ -93,58 +126,90 @@ export default function TeamRoutes (
 		}
 
 		teamViews = teamViews.sort((a, b) => {
-			if (a.simWinSuperBowlChance !== undefined && b.simWinSuperBowlChance !== undefined) {
-				if (a.simWinSuperBowlChance > b.simWinSuperBowlChance) {
+			if (a.winSbChance !== undefined && b.winSbChance !== undefined) {
+				if (a.winSbChance > b.winSbChance) {
 					return -1;
-				} else if (a.simWinSuperBowlChance < b.simWinSuperBowlChance) {
+				} else if (a.winSbChance < b.winSbChance) {
 					return 1;
 				}
 			}
 
-			if (a.simWinConfChance !== undefined && b.simWinConfChance !== undefined) {
-				if (a.simWinConfChance > b.simWinConfChance) {
+			if (a.makeSbChance !== undefined && b.makeSbChance !== undefined) {
+				if (a.makeSbChance > b.makeSbChance) {
 					return -1;
-				} else if (a.simWinConfChance < b.simWinConfChance) {
+				} else if (a.makeSbChance < b.makeSbChance) {
 					return 1;
 				}
 			}
 
-			if (a.simWinDivChance !== undefined && b.simWinDivChance !== undefined) {
-				if (a.simWinDivChance > b.simWinDivChance) {
+			if (a.makeConfChance !== undefined && b.makeConfChance !== undefined) {
+				if (a.makeConfChance > b.makeConfChance) {
 					return -1;
-				} else if (a.simWinDivChance < b.simWinDivChance) {
+				} else if (a.makeConfChance < b.makeConfChance) {
 					return 1;
 				}
 			}
 
-			if (a.simMakeDivChance !== undefined && b.simMakeDivChance !== undefined) {
-				if (a.simMakeDivChance > b.simMakeDivChance) {
+			if (a.makeDivChance !== undefined && b.makeDivChance !== undefined) {
+				if (a.makeDivChance > b.makeDivChance) {
 					return -1;
-				} else if (a.simMakeDivChance < b.simMakeDivChance) {
+				} else if (a.makeDivChance < b.makeDivChance) {
 					return 1;
 				}
 			}
 
-			if (a.simConfLeaderChance !== undefined && b.simConfLeaderChance !== undefined) {
-				if (a.simConfLeaderChance > b.simConfLeaderChance) {
+			if (a.seed1Chance !== undefined && b.seed1Chance !== undefined) {
+				if (a.seed1Chance > b.seed1Chance) {
 					return -1;
-				} else if (a.simConfLeaderChance < b.simConfLeaderChance) {
+				} else if (a.seed1Chance < b.seed1Chance) {
 					return 1;
 				}
 			}
 
-			if (a.simDivLeaderChance !== undefined && b.simDivLeaderChance !== undefined) {
-				if (a.simDivLeaderChance > b.simDivLeaderChance) {
+			if (a.seed2Chance !== undefined && b.seed2Chance !== undefined) {
+				if (a.seed2Chance > b.seed2Chance) {
 					return -1;
-				} else if (a.simDivLeaderChance < b.simDivLeaderChance) {
+				} else if (a.seed2Chance < b.seed2Chance) {
 					return 1;
 				}
 			}
 
-			if (a.simPlayoffChance !== undefined && b.simPlayoffChance !== undefined) {
-				if (a.simPlayoffChance > b.simPlayoffChance) {
+			if (a.seed3Chance !== undefined && b.seed3Chance !== undefined) {
+				if (a.seed3Chance > b.seed3Chance) {
 					return -1;
-				} else if (a.simPlayoffChance < b.simPlayoffChance) {
+				} else if (a.seed3Chance < b.seed3Chance) {
+					return 1;
+				}
+			}
+
+			if (a.seed4Chance !== undefined && b.seed4Chance !== undefined) {
+				if (a.seed4Chance > b.seed4Chance) {
+					return -1;
+				} else if (a.seed4Chance < b.seed4Chance) {
+					return 1;
+				}
+			}
+
+			if (a.seed5Chance !== undefined && b.seed5Chance !== undefined) {
+				if (a.seed5Chance > b.seed5Chance) {
+					return -1;
+				} else if (a.seed5Chance < b.seed5Chance) {
+					return 1;
+				}
+			}
+
+			if (a.seed6Chance !== undefined && b.seed6Chance !== undefined) {
+				if (a.seed6Chance > b.seed6Chance) {
+					return -1;
+				} else if (a.seed6Chance < b.seed6Chance) {
+					return 1;
+				}
+			}
+
+			if (a.seed7Chance !== undefined && b.seed7Chance !== undefined) {
+				if (a.seed7Chance > b.seed7Chance) {
+					return -1;
+				} else if (a.seed7Chance < b.seed7Chance) {
 					return 1;
 				}
 			}
@@ -197,17 +262,17 @@ export default function TeamRoutes (
 
 		const games = await gameRepo.findBy([{
 			homeTeamId: teamId,
-			homeTeamScore: Not(IsNull()),
+			homeScore: Not(IsNull()),
 			season: 2024,
 			seasonType: SeasonType.REGULAR
 		}, {
 			awayTeamId: teamId,
-			awayTeamScore: Not(IsNull()),
+			awayScore: Not(IsNull()),
 			season: 2024,
 			seasonType: SeasonType.REGULAR
 		}]);
 
-		const chances = (await chanceRepo.find({
+		const chances = (await teamChancesByGameRepo.find({
 			relations: {
 				game: {
 					homeTeam: true,
@@ -217,7 +282,7 @@ export default function TeamRoutes (
 			where: {
 				teamId,
 				game: {
-					homeTeamScore: IsNull()
+					homeScore: IsNull()
 				}
 			},
 			order: {
@@ -238,16 +303,16 @@ export default function TeamRoutes (
 
 		const wonGames = games
 			.filter(g =>
-				(g.homeTeamId === teamId && g.homeTeamScore > g.awayTeamScore) ||
-				(g.awayTeamId === teamId && g.homeTeamScore < g.awayTeamScore))
+				(g.homeTeamId === teamId && g.homeScore > g.awayScore) ||
+				(g.awayTeamId === teamId && g.homeScore < g.awayScore))
 			.length;
 		const lostGames = games
 			.filter(g =>
-				(g.homeTeamId === teamId && g.homeTeamScore < g.awayTeamScore) ||
-				(g.awayTeamId === teamId && g.homeTeamScore > g.awayTeamScore))
+				(g.homeTeamId === teamId && g.homeScore < g.awayScore) ||
+				(g.awayTeamId === teamId && g.homeScore > g.awayScore))
 			.length;
 		const tiedGames = games
-			.filter(g => g.homeTeamScore === g.awayTeamScore)
+			.filter(g => g.homeScore === g.awayScore)
 			.length;
 		const rec = `${wonGames}-${lostGames}` + (tiedGames > 0 ? `-${tiedGames}` : '');
 

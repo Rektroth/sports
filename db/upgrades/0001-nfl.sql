@@ -50,7 +50,7 @@ IF NOT EXISTS (SELECT 1 FROM v.upgrades WHERE id = 1) THEN
 	CREATE TABLE nfl.team_chances (
 		team_id SMALLINT NOT NULL REFERENCES nfl.team(id) ON DELETE CASCADE,
 		season SMALLINT NOT NULL,
-		week SMALLINT NOT NULL CHECK (week >= 1),
+		week SMALLINT NOT NULL CHECK (week >= 0),
 		seed7 DOUBLE PRECISION CHECK (seed7 IS NULL OR (seed7 >= 0 AND seed7 <= 1)),
 		seed6 DOUBLE PRECISION CHECK (seed6 IS NULL OR (seed6 >= 0 AND seed6 <= 1)),
 		seed5 DOUBLE PRECISION CHECK (seed5 IS NULL OR (seed5 >= 0 AND seed5 <= 1)),

@@ -2,13 +2,13 @@ import 'reflect-metadata';
 import express, { type Express, type Request, type Response } from 'express';
 import { type Repository, LessThan } from 'typeorm';
 import { chance } from '@rektroth/elo';
-import { type Game, type SimPlayoffChance, type TeamElo } from '@rektroth/sports-entities';
+import { type Game, type TeamChancesByGame, type TeamElo } from '@rektroth/sports-entities';
 
 const app = express();
 
 export default function GameRoutes (
 	gameRepo: Repository<Game>,
-	chanceRepo: Repository<SimPlayoffChance>,
+	teamChancesByGameRepo: Repository<TeamChancesByGame>,
 	eloRepo: Repository<TeamElo>
 ): Express {
 	app.get('/:id', async (req: Request, res: Response) => {
@@ -34,7 +34,7 @@ export default function GameRoutes (
 			return;
 		}
 
-		const chances = (await chanceRepo.find({
+		const chances = (await teamChancesByGameRepo.find({
 			relations: {
 				team: true,
 				game: {
@@ -136,7 +136,7 @@ export default function GameRoutes (
 	return app;
 }
 
-function sortChances (a: SimPlayoffChance, b: SimPlayoffChance): number {
+function sortChances (a: TeamChancesByGame, b: TeamChancesByGame): number {
 	const aTotalDiff = totalChanceDiff(a);
 	const bTotalDiff = totalChanceDiff(b);
 
@@ -149,71 +149,118 @@ function sortChances (a: SimPlayoffChance, b: SimPlayoffChance): number {
 	return 0;
 }
 
-function totalChanceDiff (chance: SimPlayoffChance): number {
-	if (chance.team?.simPlayoffChance !== undefined &&
-		chance.team?.simDivLeaderChance !== undefined &&
-		chance.team?.simConfLeaderChance !== undefined
-	) {
-		let playoffChanceDiff = chance.playoffChanceWithHomeWin > chance.playoffChanceWithAwayWin
-			? (chance.playoffChanceWithHomeWin / chance.playoffChanceWithAwayWin) - 1
-			: (chance.playoffChanceWithAwayWin / chance.playoffChanceWithHomeWin) - 1;
-		let divLeaderChanceDiff = chance.divLeaderChanceWithHomeWin > chance.divLeaderChanceWithAwayWin
-			? (chance.divLeaderChanceWithHomeWin / chance.divLeaderChanceWithAwayWin) - 1
-			: (chance.divLeaderChanceWithAwayWin / chance.divLeaderChanceWithHomeWin) - 1;
-		let confLeaderChanceDiff = chance.confLeaderChanceWithHomeWin > chance.confLeaderChanceWithAwayWin
-			? (chance.confLeaderChanceWithHomeWin / chance.confLeaderChanceWithAwayWin) - 1
-			: (chance.confLeaderChanceWithAwayWin / chance.confLeaderChanceWithHomeWin) - 1;
-		let makeDivChanceDiff = chance.makeDivChanceWithHomeWin > chance.makeDivChanceWithAwayWin
-			? (chance.makeDivChanceWithHomeWin / chance.makeDivChanceWithAwayWin) - 1
-			: (chance.makeDivChanceWithAwayWin / chance.makeDivChanceWithHomeWin) - 1;
-		let divWinnerChanceDiff = chance.divWinnerChanceWithHomeWin > chance.divWinnerChanceWithAwayWin
-			? (chance.divWinnerChanceWithHomeWin / chance.divWinnerChanceWithAwayWin) - 1
-			: (chance.divWinnerChanceWithAwayWin / chance.divWinnerChanceWithHomeWin) - 1;
-		let confWinnerChanceDiff = chance.confWinnerChanceWithHomeWin > chance.confWinnerChanceWithAwayWin
-			? (chance.confWinnerChanceWithHomeWin / chance.confWinnerChanceWithAwayWin) - 1
-			: (chance.confWinnerChanceWithAwayWin / chance.confWinnerChanceWithHomeWin) - 1;
-		let superBowlWinnerChanceDiff = chance.superBowlWinnerChanceWithHomeWin > chance.superBowlWinnerChanceWithAwayWin
-			? (chance.superBowlWinnerChanceWithHomeWin / chance.superBowlWinnerChanceWithAwayWin) - 1
-			: (chance.superBowlWinnerChanceWithAwayWin / chance.superBowlWinnerChanceWithHomeWin) - 1;
+function totalChanceDiff(chances: TeamChancesByGame): number {
+	let seed7ChanceDiff = chances.homeSeed7 > chances.awaySeed7
+		? (chances.homeSeed7 / chances.awaySeed7) - 1
+		: (chances.awaySeed7 / chances.homeSeed7) - 1;
+	let seed6ChanceDiff = chances.homeSeed6 > chances.awaySeed6
+		? (chances.homeSeed6 / chances.awaySeed6) - 1
+		: (chances.awaySeed6 / chances.homeSeed6) - 1;
+	let seed5ChanceDiff = chances.homeSeed5 > chances.awaySeed5
+		? (chances.homeSeed5 / chances.awaySeed5) - 1
+		: (chances.awaySeed5 / chances.homeSeed5) - 1;
+	let seed4ChanceDiff = chances.homeSeed4 > chances.awaySeed4
+		? (chances.homeSeed4 / chances.awaySeed4) - 1
+		: (chances.awaySeed4 / chances.homeSeed4) - 1;
+	let seed3ChanceDiff = chances.homeSeed3 > chances.awaySeed3
+		? (chances.homeSeed3 / chances.awaySeed3) - 1
+		: (chances.awaySeed3 / chances.homeSeed3) - 1;
+	let seed2ChanceDiff = chances.homeSeed2 > chances.awaySeed2
+		? (chances.homeSeed2 / chances.awaySeed2) - 1
+		: (chances.awaySeed2 / chances.homeSeed2) - 1;
+	let seed1ChanceDiff = chances.homeSeed1 > chances.awaySeed1
+		? (chances.homeSeed1 / chances.awaySeed1) - 1
+		: (chances.awaySeed1 / chances.homeSeed1) - 1;
+	let hostWcChanceDiff = chances.homeHostWildCard > chances.awayHostWildCard
+		? (chances.homeHostWildCard / chances.awayHostWildCard) - 1
+		: (chances.awayHostWildCard / chances.homeHostWildCard) - 1;
+	let hostDivChanceDiff = chances.homeHostDivision > chances.awayHostDivision
+		? (chances.homeHostDivision / chances.awayHostDivision) - 1
+		: (chances.awayHostDivision / chances.homeHostDivision) - 1;
+	let hostConfChanceDiff = chances.homeHostConference > chances.awayHostConference
+		? (chances.homeHostConference / chances.awayHostConference) - 1
+		: (chances.awayHostConference / chances.homeHostConference) - 1;
+	let makeDivChanceDiff = chances.homeMakeDivision > chances.awayMakeDivision
+		? (chances.homeMakeDivision / chances.awayMakeDivision) - 1
+		: (chances.awayMakeDivision / chances.homeMakeDivision) - 1;
+	let makeConfChanceDiff = chances.homeMakeConference > chances.awayMakeConference
+		? (chances.homeMakeConference / chances.awayMakeConference) - 1
+		: (chances.awayMakeConference / chances.homeMakeConference) - 1;
+	let makeSbChanceDiff = chances.homeMakeSuperBowl > chances.awayMakeSuperBowl
+		? (chances.homeMakeSuperBowl / chances.awayMakeSuperBowl) - 1
+		: (chances.awayMakeSuperBowl / chances.homeMakeSuperBowl) - 1;
+	let winSbChanceDiff = chances.homeWinSuperBowl > chances.awayWinSuperBowl
+		? (chances.homeWinSuperBowl / chances.awayWinSuperBowl) - 1
+		: (chances.awayWinSuperBowl / chances.homeWinSuperBowl) - 1;
 
-		if (Number.isNaN(playoffChanceDiff)) {
-			playoffChanceDiff = 0;
-		}
-
-		if (Number.isNaN(divLeaderChanceDiff)) {
-			divLeaderChanceDiff = 0;
-		}
-
-		if (Number.isNaN(confLeaderChanceDiff)) {
-			confLeaderChanceDiff = 0;
-		}
-
-		if (Number.isNaN(makeDivChanceDiff)) {
-			makeDivChanceDiff = 0;
-		}
-
-		if (Number.isNaN(divWinnerChanceDiff)) {
-			divWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(confWinnerChanceDiff)) {
-			confWinnerChanceDiff = 0;
-		}
-
-		if (Number.isNaN(superBowlWinnerChanceDiff)) {
-			superBowlWinnerChanceDiff = 0;
-		}
-
-		const totalDiff = playoffChanceDiff +
-			divLeaderChanceDiff +
-			confLeaderChanceDiff +
-			makeDivChanceDiff +
-			divWinnerChanceDiff +
-			confWinnerChanceDiff +
-			superBowlWinnerChanceDiff;
-
-		return totalDiff;
+	if (Number.isNaN(seed7ChanceDiff)) {
+		seed7ChanceDiff = 0;
 	}
 
-	return 0;
+	if (Number.isNaN(seed6ChanceDiff)) {
+		seed6ChanceDiff = 0;
+	}
+
+	if (Number.isNaN(seed5ChanceDiff)) {
+		seed5ChanceDiff = 0;
+	}
+
+	if (Number.isNaN(seed4ChanceDiff)) {
+		seed4ChanceDiff = 0;
+	}
+
+	if (Number.isNaN(seed3ChanceDiff)) {
+		seed3ChanceDiff = 0;
+	}
+
+	if (Number.isNaN(seed2ChanceDiff)) {
+		seed2ChanceDiff = 0;
+	}
+
+	if (Number.isNaN(seed1ChanceDiff)) {
+		seed1ChanceDiff = 0;
+	}
+
+	if (Number.isNaN(hostWcChanceDiff)) {
+		hostWcChanceDiff = 0;
+	}
+
+	if (Number.isNaN(hostDivChanceDiff)) {
+		hostDivChanceDiff = 0;
+	}
+
+	if (Number.isNaN(hostConfChanceDiff)) {
+		hostConfChanceDiff = 0;
+	}
+
+	if (Number.isNaN(makeDivChanceDiff)) {
+		makeDivChanceDiff = 0;
+	}
+
+	if (Number.isNaN(makeConfChanceDiff)) {
+		makeConfChanceDiff = 0;
+	}
+
+	if (Number.isNaN(makeSbChanceDiff)) {
+		makeSbChanceDiff = 0;
+	}
+
+	if (Number.isNaN(winSbChanceDiff)) {
+		winSbChanceDiff = 0;
+	}
+
+	return seed7ChanceDiff +
+		seed6ChanceDiff +
+		seed5ChanceDiff +
+		seed4ChanceDiff +
+		seed3ChanceDiff +
+		seed2ChanceDiff +
+		seed1ChanceDiff +
+		hostWcChanceDiff +
+		hostDivChanceDiff +
+		hostConfChanceDiff +
+		makeDivChanceDiff +
+		makeConfChanceDiff +
+		makeSbChanceDiff +
+		winSbChanceDiff;
 }

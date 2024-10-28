@@ -92,10 +92,10 @@ async function updateGames (): Promise<void> {
 
 		const id = Number(game.id);
 		const startDateTime = new Date(game.date);
-		const homeTeamScore = Number(game.competitors.find((c) => c.homeAway === HOME)?.score);
-		const awayTeamScore = Number(game.competitors.find((c) => c.homeAway === AWAY)?.score);
+		const homeScore = Number(game.competitors.find((c) => c.homeAway === HOME)?.score);
+		const awayScore = Number(game.competitors.find((c) => c.homeAway === AWAY)?.score);
 
-		if (isNaN(homeTeamScore) || isNaN(awayTeamScore)) {
+		if (isNaN(homeScore) || isNaN(awayScore)) {
 			await gameRepo.save({
 				id,
 				startDateTime
@@ -103,8 +103,8 @@ async function updateGames (): Promise<void> {
 		} else {
 			await gameRepo.save({
 				id,
-				homeTeamScore,
-				awayTeamScore,
+				homeScore,
+				awayScore,
 				startDateTime
 			});
 		}

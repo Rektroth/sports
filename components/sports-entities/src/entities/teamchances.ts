@@ -12,47 +12,47 @@ export default class TeamChances {
 	@PrimaryColumn({ name: 'week', type: 'smallint' })
 		week: number;
 
-	@Column({ name: 'away_seed7', type: 'double precision' })
-		awaySeed7: number;
+	@Column({ name: 'seed7', type: 'double precision' })
+		seed7: number;
 
-	@Column({ name: 'away_seed6', type: 'double precision' })
-		awaySeed6: number;
+	@Column({ name: 'seed6', type: 'double precision' })
+		seed6: number;
 
-	@Column({ name: 'away_seed5', type: 'double precision' })
-		awaySeed5: number;
+	@Column({ name: 'seed5', type: 'double precision' })
+		seed5: number;
 
-	@Column({ name: 'away_seed4', type: 'double precision' })
-		awaySeed4: number;
+	@Column({ name: 'seed4', type: 'double precision' })
+		seed4: number;
 
-	@Column({ name: 'away_seed3', type: 'double precision' })
-		awaySeed3: number;
+	@Column({ name: 'seed3', type: 'double precision' })
+		seed3: number;
 
-	@Column({ name: 'away_seed2', type: 'double precision' })
-		awaySeed2: number;
+	@Column({ name: 'seed2', type: 'double precision' })
+		seed2: number;
 
-	@Column({ name: 'away_seed1', type: 'double precision' })
-		awaySeed1: number;
+	@Column({ name: 'seed1', type: 'double precision' })
+		seed1: number;
 
-	@Column({ name: 'away_host_wc', type: 'double precision' })
-		awayHostWildCard: number;
+	@Column({ name: 'host_wc', type: 'double precision' })
+		hostWildCard: number;
 
-	@Column({ name: 'away_host_div', type: 'double precision' })
-		awayHostDivision: number;
+	@Column({ name: 'host_div', type: 'double precision' })
+		hostDivision: number;
 
-	@Column({ name: 'away_host_conf', type: 'double precision' })
-		awayHostConference: number;
+	@Column({ name: 'host_conf', type: 'double precision' })
+		hostConference: number;
 
-	@Column({ name: 'away_make_div', type: 'double precision' })
-		awayMakeDivision: number;
+	@Column({ name: 'make_div', type: 'double precision' })
+		makeDivision: number;
 
-	@Column({ name: 'away_make_conf', type: 'double precision' })
-		awayMakeConference: number;
+	@Column({ name: 'make_conf', type: 'double precision' })
+		makeConference: number;
 
-	@Column({ name: 'away_make_sb', type: 'double precision' })
-		awayMakeSuperBowl: number;
+	@Column({ name: 'make_sb', type: 'double precision' })
+		makeSuperBowl: number;
 
-	@Column({ name: 'away_win_sb', type: 'double precision' })
-		awayWinSuperBowl: number;
+	@Column({ name: 'win_sb', type: 'double precision' })
+		winSuperBowl: number;
 
 	@ManyToOne(() => Team)
 	@JoinColumn({ name: 'team_id' })

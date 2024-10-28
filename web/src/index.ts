@@ -9,7 +9,7 @@ import https from 'https';
 import path from 'path';
 import {
 	Game,
-	SimPlayoffChance,
+	TeamChancesByGame,
 	SportsDataSource,
 	Team,
 	TeamElo
@@ -22,6 +22,7 @@ dotenv.config();
 const HOST = process.env.HOST ?? 'localhost';
 const PORT = process.env.PORT ?? 3080;
 const SSL_PORT = process.env.SSL_PORT ?? 3443;
+const DB_SCHEMA = 'nfl';
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = isNaN(Number(process.env.DB_PORT)) ? 5432 : Number(process.env.db_port);
 const DB_USERNAME = process.env.DB_USERNAME ?? 'postgres';
@@ -45,21 +46,21 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public'));
 
-const webDataSource = SportsDataSource(DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
+const webDataSource = SportsDataSource(DB_SCHEMA, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
 webDataSource.initialize().then(() => {
 	console.log('Data source initialized!');
 
 	const teamRepo = webDataSource.getRepository(Team);
 	const gameRepo = webDataSource.getRepository(Game);
-	const chanceRepo = webDataSource.getRepository(SimPlayoffChance);
+	const teamChancesByGameRepo = webDataSource.getRepository(TeamChancesByGame);
 	const eloRepo = webDataSource.getRepository(TeamElo);
 
 	app.get('/', (req: Request, res: Response) => {
 		res.redirect('/teams');
 	});
 
-	app.use('/games', GameRoutes(gameRepo, chanceRepo, eloRepo));
-	app.use('/teams', TeamRoutes(teamRepo, chanceRepo, gameRepo, eloRepo));
+	app.use('/games', GameRoutes(gameRepo, teamChancesByGameRepo, eloRepo));
+	app.use('/teams', TeamRoutes(teamRepo, teamChancesByGameRepo, gameRepo, eloRepo));
 
 	if (PRIVATE_KEY !== null && CERTIFICATE !== null) {
 		const httpApp = express();
