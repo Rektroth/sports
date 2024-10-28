@@ -1167,7 +1167,7 @@ async function analyzeTeam (team: Team, games: Game[], week: number): Promise<vo
 		.sort((a, b) => a.startDateTime > b.startDateTime ? 1 : -1);
 
 	for (let i = 0; i < teamPlayoffGames.length; i++) {
-		if (((i < 3 && (makeSbChance === 0 || makeSbChance === 1)) || (i === 3 && makeSbChance === 0)) && teamPlayoffGames[i].homeScore === null) {
+		if (((i < 3 && (winSbChance === 0 || winSbChance === 1)) || (i === 3 && winSbChance === 0)) && teamPlayoffGames[i].homeScore === null) {
 			if (makeDivChance === 0) {
 				makeDivChance = 0.000001;
 			}
