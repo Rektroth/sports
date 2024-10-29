@@ -34,6 +34,7 @@ const teamRepo = simDataSource.getRepository(Team);
 const gameRepo = simDataSource.getRepository(Game);
 const teamChancesRepo = simDataSource.getRepository(TeamChances);
 const teamChancesByGameRepo = simDataSource.getRepository(TeamChancesByGame);
+
 const simGames: GameObj[] = [];
 const simSeed7s: AppearanceObj[] = [];
 const simSeed6s: AppearanceObj[] = [];

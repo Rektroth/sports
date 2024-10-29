@@ -14,42 +14,42 @@ block content
             td(colspan=2).head= 'Seeding Probabilities'
         tr
             td.head= 'Make Playoffs'
-            +pcttd(Number(team.simPlayoffChance))
+            +pcttd(Number(team.chances[0].seed7))
         tr
             td.head= 'Lead Division'
-            +pcttd(Number(team.simDivLeaderChance))
+            +pcttd(Number(team.chances[0].seed4))
         tr
             td.head= 'Lead Conference'
-            +pcttd(Number(team.simConfLeaderChance))
+            +pcttd(Number(team.chances[0].seed1))
         tr
             td(colspan=2).head= 'Hosting Probabilities'
         tr
             td.head= 'Host Wild Card Game'
-            +pcttd(Number(team.simDivLeaderChance))
+            +pcttd(Number(team.chances[0].hostWildCard))
         tr
             td.head= 'Host Division Round Game'
-            +pcttd(Number(team.simHostDivChance))
+            +pcttd(Number(team.chances[0].hostDivision))
         tr
             td.head= 'Host Conference Championship'
-            +pcttd(Number(team.simHostConfChance))
+            +pcttd(Number(team.chances[0].hostConference))
         tr
             td(colspan=2).head= 'Playoff Probabilities'
         tr
             td.head= 'Make Division Round'
-            +pcttd(Number(team.simMakeDivChance))
+            +pcttd(Number(team.chances[0].makeDivision))
         tr
             td.head= 'Win Division Game'
-            +pcttd(Number(team.simWinDivChance))
+            +pcttd(Number(team.chances[0].makeConference))
         tr
             td.head= 'Win Conference Championship'
-            +pcttd(Number(team.simWinConfChance))
+            +pcttd(Number(team.chances[0].makeSuperBowl))
         tr
             td.team(style='background-color:' + team.color1)= team.name
             td.team(style='background-color:' + team.color1)
                     img(src='../../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
             td.team(style='background-color:' + team.color1)= team.division.name.substring(4, 9)
             td.head= 'Win Super Bowl'
-            +pcttd(Number(team.simWinSuperBowlChance))
+            +pcttd(Number(team.chances[0].winSuperBowl))
     table.chances
         tr
             td(colspan=8).head= 'Probabilities w/ Away Victory'

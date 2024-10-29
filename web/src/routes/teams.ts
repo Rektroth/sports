@@ -4,8 +4,9 @@ import { type Repository, IsNull, Not } from 'typeorm';
 import {
 	type Division,
 	type Game,
-	type TeamChancesByGame,
 	type Team,
+	type TeamChances,
+	type TeamChancesByGame,
 	type TeamElo,
 	SeasonType
 } from '@rektroth/sports-entities';
@@ -16,20 +17,7 @@ class TeamView {
 	id: number;
 	name: string;
 	division?: Division;
-	seed7Chance?: number;
-	seed6Chance?: number;
-	seed5Chance?: number;
-	seed4Chance?: number;
-	seed3Chance?: number;
-	seed2Chance?: number;
-	seed1Chance?: number;
-	hostWcChance?: number;
-	hostDivChance?: number;
-	hostConfChance?: number;
-	makeDivChance?: number;
-	makeConfChance?: number;
-	makeSbChance?: number;
-	winSbChance?: number;
+	chances?: TeamChances[];
 	color1: string;
 	record: string;
 	elo: number;
@@ -76,7 +64,6 @@ export default function TeamRoutes (
 			}]);
 
 			const chances = teams[i].chances?.at(0);
-			console.log(chances?.seed7);
 
 			const eloScore = await eloRepo.findOne({
 				where: {
@@ -105,20 +92,6 @@ export default function TeamRoutes (
 
 			teamViews.push({
 				...teams[i],
-				seed7Chance: chances?.seed7,
-				seed6Chance: chances?.seed6,
-				seed5Chance: chances?.seed5,
-				seed4Chance: chances?.seed4,
-				seed3Chance: chances?.seed3,
-				seed2Chance: chances?.seed2,
-				seed1Chance: chances?.seed1,
-				hostWcChance: chances?.hostWildCard,
-				hostDivChance: chances?.hostDivision,
-				hostConfChance: chances?.hostConference,
-				makeDivChance: chances?.makeDivision,
-				makeConfChance: chances?.makeConference,
-				makeSbChance: chances?.makeSuperBowl,
-				winSbChance: chances?.winSuperBowl,
 				record: rec,
 				elo: eloScore?.eloScore ?? 1500,
 				pct
@@ -126,90 +99,90 @@ export default function TeamRoutes (
 		}
 
 		teamViews = teamViews.sort((a, b) => {
-			if (a.winSbChance !== undefined && b.winSbChance !== undefined) {
-				if (a.winSbChance > b.winSbChance) {
+			if (a.chances?.at(0)?.winSuperBowl !== undefined && b.chances?.at(0)?.winSuperBowl !== undefined) {
+				if (a.chances[0].winSuperBowl > b.chances[0].winSuperBowl) {
 					return -1;
-				} else if (a.winSbChance < b.winSbChance) {
+				} else if (a.chances[0].winSuperBowl < b.chances[0].winSuperBowl) {
 					return 1;
 				}
 			}
 
-			if (a.makeSbChance !== undefined && b.makeSbChance !== undefined) {
-				if (a.makeSbChance > b.makeSbChance) {
+			if (a.chances?.at(0)?.makeSuperBowl !== undefined && b.chances?.at(0)?.makeSuperBowl !== undefined) {
+				if (a.chances[0].makeSuperBowl > b.chances[0].makeSuperBowl) {
 					return -1;
-				} else if (a.makeSbChance < b.makeSbChance) {
+				} else if (a.chances[0].makeSuperBowl < b.chances[0].makeSuperBowl) {
 					return 1;
 				}
 			}
 
-			if (a.makeConfChance !== undefined && b.makeConfChance !== undefined) {
-				if (a.makeConfChance > b.makeConfChance) {
+			if (a.chances?.at(0)?.makeConference !== undefined && b.chances?.at(0)?.makeConference !== undefined) {
+				if (a.chances[0].makeConference > b.chances[0].makeConference) {
 					return -1;
-				} else if (a.makeConfChance < b.makeConfChance) {
+				} else if (a.chances[0].makeConference < b.chances[0].makeConference) {
 					return 1;
 				}
 			}
 
-			if (a.makeDivChance !== undefined && b.makeDivChance !== undefined) {
-				if (a.makeDivChance > b.makeDivChance) {
+			if (a.chances?.at(0)?.makeDivision !== undefined && b.chances?.at(0)?.makeDivision !== undefined) {
+				if (a.chances[0].makeDivision > b.chances[0].makeDivision) {
 					return -1;
-				} else if (a.makeDivChance < b.makeDivChance) {
+				} else if (a.chances[0].makeDivision < b.chances[0].makeDivision) {
 					return 1;
 				}
 			}
 
-			if (a.seed1Chance !== undefined && b.seed1Chance !== undefined) {
-				if (a.seed1Chance > b.seed1Chance) {
+			if (a.chances?.at(0)?.seed1 !== undefined && b.chances?.at(0)?.seed1 !== undefined) {
+				if (a.chances[0].seed1 > b.chances[0].seed1) {
 					return -1;
-				} else if (a.seed1Chance < b.seed1Chance) {
+				} else if (a.chances[0].seed1 < b.chances[0].seed1) {
 					return 1;
 				}
 			}
 
-			if (a.seed2Chance !== undefined && b.seed2Chance !== undefined) {
-				if (a.seed2Chance > b.seed2Chance) {
+			if (a.chances?.at(0)?.seed2 !== undefined && b.chances?.at(0)?.seed2 !== undefined) {
+				if (a.chances[0].seed2 > b.chances[0].seed2) {
 					return -1;
-				} else if (a.seed2Chance < b.seed2Chance) {
+				} else if (a.chances[0].seed2 < b.chances[0].seed2) {
 					return 1;
 				}
 			}
 
-			if (a.seed3Chance !== undefined && b.seed3Chance !== undefined) {
-				if (a.seed3Chance > b.seed3Chance) {
+			if (a.chances?.at(0)?.seed3 !== undefined && b.chances?.at(0)?.seed3 !== undefined) {
+				if (a.chances[0].seed3 > b.chances[0].seed3) {
 					return -1;
-				} else if (a.seed3Chance < b.seed3Chance) {
+				} else if (a.chances[0].seed3 < b.chances[0].seed3) {
 					return 1;
 				}
 			}
 
-			if (a.seed4Chance !== undefined && b.seed4Chance !== undefined) {
-				if (a.seed4Chance > b.seed4Chance) {
+			if (a.chances?.at(0)?.seed4 !== undefined && b.chances?.at(0)?.seed4 !== undefined) {
+				if (a.chances[0].seed4 > b.chances[0].seed4) {
 					return -1;
-				} else if (a.seed4Chance < b.seed4Chance) {
+				} else if (a.chances[0].seed4 < b.chances[0].seed4) {
 					return 1;
 				}
 			}
 
-			if (a.seed5Chance !== undefined && b.seed5Chance !== undefined) {
-				if (a.seed5Chance > b.seed5Chance) {
+			if (a.chances?.at(0)?.seed5 !== undefined && b.chances?.at(0)?.seed5 !== undefined) {
+				if (a.chances[0].seed5 > b.chances[0].seed5) {
 					return -1;
-				} else if (a.seed5Chance < b.seed5Chance) {
+				} else if (a.chances[0].seed5 < b.chances[0].seed5) {
 					return 1;
 				}
 			}
 
-			if (a.seed6Chance !== undefined && b.seed6Chance !== undefined) {
-				if (a.seed6Chance > b.seed6Chance) {
+			if (a.chances?.at(0)?.seed6 !== undefined && b.chances?.at(0)?.seed6 !== undefined) {
+				if (a.chances[0].seed6 > b.chances[0].seed6) {
 					return -1;
-				} else if (a.seed6Chance < b.seed6Chance) {
+				} else if (a.chances[0].seed6 < b.chances[0].seed6) {
 					return 1;
 				}
 			}
 
-			if (a.seed7Chance !== undefined && b.seed7Chance !== undefined) {
-				if (a.seed7Chance > b.seed7Chance) {
+			if (a.chances?.at(0)?.seed7 !== undefined && b.chances?.at(0)?.seed7 !== undefined) {
+				if (a.chances[0].seed7 > b.chances[0].seed7) {
 					return -1;
-				} else if (a.seed7Chance < b.seed7Chance) {
+				} else if (a.chances[0].seed7 < b.chances[0].seed7) {
 					return 1;
 				}
 			}
@@ -248,10 +221,19 @@ export default function TeamRoutes (
 
 		const team = await teamRepo.findOne({
 			relations: {
-				division: true
+				division: true,
+				chances: true
 			},
 			where: {
-				id: teamId
+				id: teamId,
+				chances: {
+					season: 2024
+				}
+			},
+			order: {
+				chances: {
+					week: 'DESC'
+				}
 			}
 		});
 
