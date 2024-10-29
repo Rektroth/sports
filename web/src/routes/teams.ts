@@ -63,8 +63,6 @@ export default function TeamRoutes (
 				seasonType: SeasonType.REGULAR
 			}]);
 
-			const chances = teams[i].chances?.at(0);
-
 			const eloScore = await eloRepo.findOne({
 				where: {
 					teamId: teams[i].id

@@ -97,7 +97,18 @@ export default async function main (): Promise<void> {
 	console.log();
 	console.log('Analyzing teams...');
 
-	const lastGameWeek = games.filter(g => g.homeScore !== null).reverse()[0].week;
+	const lastGameWeek = games
+		.filter(g => g.homeScore !== null)
+		.sort((a, b) => {
+			if (a.startDateTime < b.startDateTime) {
+				return 1;
+			} else if (a.startDateTime > b.startDateTime) {
+				return -1;
+			}
+
+			return 0;
+		})[0]
+		.week;
 
 	for (let i = 0; i < teams.length; i++) {
 		await analyzeTeam(teams[i], games, lastGameWeek);
