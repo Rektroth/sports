@@ -39,31 +39,31 @@ block content
             td.head= 'Super Bowl Winner'
         each chance in chances
             tr
-                +pcttd(Number(chance.superBowlWinnerChanceWithAwayWin > 0 ?
-                    chance.superBowlWinnerChanceWithAwayWin : (chance.playoffChanceWithAwayWin && chance.game.season == 'regular') > 0 ?
+                +pcttd(Number(chance.awayWinSuperBowl > 0 ?
+                    chance.awayWinSuperBowl : (chance.awayWinSuperBowl && chance.game.season == 'regular') > 0 ?
                     0.00001 : 0))
-                +pcttd(Number(chance.confWinnerChanceWithAwayWin > 0 ?
-                    chance.confWinnerChanceWithAwayWin : (chance.playoffChanceWithAwayWin > 0 && chance.game.season == 'regular') ?
+                +pcttd(Number(chance.awayMakeSuperBowl > 0 ?
+                    chance.awayMakeSuperBowl : (chance.awayMakeSuperBowl > 0 && chance.game.season == 'regular') ?
                     0.00001 : 0))
-                +pcttd(Number(chance.divWinnerChanceWithAwayWin > 0 ?
-                    chance.divWinnerChanceWithAwayWin : (chance.playoffChanceWithAwayWin > 0 && chance.game.season == 'regular') ?
+                +pcttd(Number(chance.awayMakeConference > 0 ?
+                    chance.awayMakeConference : (chance.awayMakeConference > 0 && chance.game.season == 'regular') ?
                     0.00001 : 0))
-                +pcttd(Number(chance.confLeaderChanceWithAwayWin))
-                +pcttd(Number(chance.divLeaderChanceWithAwayWin))
-                +pcttd(Number(chance.playoffChanceWithAwayWin))
+                +pcttd(Number(chance.awaySeed1))
+                +pcttd(Number(chance.awaySeed4))
+                +pcttd(Number(chance.awaySeed7))
                 td.team(style='background-color:' + chance.team.color1)
                     img(src='../img/' + chance.team.abbreviation.toLowerCase() + '.svg')
                 td.team(style='background-color:' + chance.team.color1)
                     a(href='/teams/' + chance.team.id)= chance.team.name
-                +pcttd(Number(chance.playoffChanceWithHomeWin))
-                +pcttd(Number(chance.divLeaderChanceWithHomeWin))
-                +pcttd(Number(chance.confLeaderChanceWithHomeWin))
-                +pcttd(Number(chance.divWinnerChanceWithHomeWin > 0 ?
-                    chance.divWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
+                +pcttd(Number(chance.homeSeed7))
+                +pcttd(Number(chance.homeSeed4))
+                +pcttd(Number(chance.homeSeed1))
+                +pcttd(Number(chance.homeMakeConference > 0 ?
+                    chance.homeMakeConference : (chance.homeMakeConference > 0 && chance.game.season == 'regular') ?
                     0.00001 : 0))
-                +pcttd(Number(chance.confWinnerChanceWithHomeWin > 0 ?
-                    chance.confWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
+                +pcttd(Number(chance.homeMakeSuperBowl > 0 ?
+                    chance.homeMakeSuperBowl : (chance.homeMakeSuperBowl > 0 && chance.game.season == 'regular') ?
                     0.00001 : 0))
-                +pcttd(Number(chance.superBowlWinnerChanceWithHomeWin > 0 ?
-                    chance.superBowlWinnerChanceWithHomeWin : (chance.playoffChanceWithHomeWin > 0 && chance.game.season == 'regular') ?
+                +pcttd(Number(chance.homeWinSuperBowl > 0 ?
+                    chance.homeWinSuperBowl : (chance.homeWinSuperBowl > 0 && chance.game.season == 'regular') ?
                     0.00001 : 0))
