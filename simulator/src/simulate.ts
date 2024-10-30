@@ -117,7 +117,17 @@ export default async function main (): Promise<void> {
 
 	console.log();
 	console.log('Analyzing games...');
-	teams = await teamRepo.find();
+	teams = await teamRepo.find({
+		relations: {
+			chances: true
+		},
+		where: {
+			chances: {
+				season: CURRENT_SEASON,
+				week: lastGameWeek
+			}
+		}
+	});
 
 	const nextGameDate = games.filter(g => g.homeScore === null)[0].startDateTime;
 	const nextGameDay = nextGameDate.getDay();
