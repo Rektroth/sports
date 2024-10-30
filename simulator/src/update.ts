@@ -150,9 +150,7 @@ async function updateGames (): Promise<void> {
 			.json() as EspnSummary;
 		const id = Number(game.header.id);
 		const startDateTime = new Date(game.header.competitions[0].date);
-		const homePredictorChance = Number(game.predictor?.homeTeam.gameProjection) / 100;
-		const awayPredictorChance = Number(game.predictor?.awayTeam.gameProjection) / 100;
-		await gameRepo.save({ id, homePredictorChance, awayPredictorChance, startDateTime });
+		await gameRepo.save({ id, startDateTime });
 	}
 
 	for (let i = 0; i < unplayedGamesNeedInsert.length; i++) {
@@ -163,7 +161,7 @@ async function updateGames (): Promise<void> {
 		const startDateTime = new Date(game.header.competitions[0].date);
 		const neutralSite = game.header.competitions[0].neutralSite;
 		const season = game.header.season.year;
-		const week = game.header.week?.number ?? 0;
+		const week = game.header.week ?? 0;
 		const seasonType = game.header.season.type === PRE_SEASON
 			? SeasonType.PRE
 			: game.header.season.type === POST_SEASON
@@ -342,21 +340,21 @@ class EspnScoreboard {
 
 class EspnSummary {
 	header: {
-		id: string
-		competitions: EspnCompetition[]
-		season: EspnSeason,
-		week: EspnWeek
+		id: string;
+		competitions: EspnCompetition[];
+		season: EspnSeason;
+		week: number | undefined;
 	};
 
 	predictor?: {
 		homeTeam: {
-			id: string
-			gameProjection: string
-		}
+			id: string;
+			gameProjection: string;
+		};
 		awayTeam: {
-			id: string
-			gameProjection: string
-		}
+			id: string;
+			gameProjection: string;
+		};
 	};
 }
 
@@ -364,18 +362,16 @@ class EspnEvent {
 	id: string;
 	date: string;
 	season: EspnSeason;
-	week: EspnWeek;
+	week: {
+		number: number;
+	};
 	competitions: EspnCompetition[];
 	status: {
 		type: {
-			id: string
-			completed: boolean
-		}
+			id: string;
+			completed: boolean;
+		};
 	};
-}
-
-class EspnWeek {
-	number: number;
 }
 
 class EspnSeason {
