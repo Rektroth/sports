@@ -1,55 +1,22 @@
 extends templates/layout
 include mixins/pcttd
 block content
-    table.infobox
-        tr
-            td.team-header(colspan=3, rowspan=14, style='background-color:' + team.color1)
-                img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.svg')
-            td.head= 'Record'
-            td.rec= team.record
-        tr
-            td.head= 'Elo'
-            td.rec= Math.round(team.elo)
-        tr
-            td(colspan=2).head= 'Seeding Probabilities'
-        tr
-            td.head= 'Make Playoffs'
-            +pcttd(Number(team.chances[0].seed7))
-        tr
-            td.head= 'Lead Division'
-            +pcttd(Number(team.chances[0].seed4))
-        tr
-            td.head= 'Lead Conference'
-            +pcttd(Number(team.chances[0].seed1))
-        tr
-            td(colspan=2).head= 'Hosting Probabilities'
-        tr
-            td.head= 'Host Wild Card Game'
-            +pcttd(Number(team.chances[0].hostWildCard))
-        tr
-            td.head= 'Host Division Round Game'
-            +pcttd(Number(team.chances[0].hostDivision))
-        tr
-            td.head= 'Host Conference Championship'
-            +pcttd(Number(team.chances[0].hostConference))
-        tr
-            td(colspan=2).head= 'Playoff Probabilities'
-        tr
-            td.head= 'Make Division Round'
-            +pcttd(Number(team.chances[0].makeDivision))
-        tr
-            td.head= 'Win Division Game'
-            +pcttd(Number(team.chances[0].makeConference))
-        tr
-            td.head= 'Win Conference Championship'
-            +pcttd(Number(team.chances[0].makeSuperBowl))
-        tr
-            td.team(style='background-color:' + team.color1)= team.name
-            td.team(style='background-color:' + team.color1)
+    div.flex-container
+        table.infobox
+            tr
+                td(colspan=3, style='background-color:' + team.color1)
+                    img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.svg')
+            tr.head
+                td= team.locality + ' ' + team.name
+                td
                     img(src='../../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
-            td.team(style='background-color:' + team.color1)= team.division.name.substring(4, 9)
-            td.head= 'Win Super Bowl'
-            +pcttd(Number(team.chances[0].winSuperBowl))
+                td= team.division.name.substring(4, 9)
+            tr
+                td.head= 'Record'
+                td.rec(colspan=2)= team.record
+            tr
+                td.head= 'Elo'
+                td.rec(colspan=2)= Math.round(team.elo)
     table.chances
         tr
             td(colspan=8).head= 'Probabilities w/ Away Victory'

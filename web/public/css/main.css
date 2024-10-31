@@ -32,15 +32,32 @@ header, td.pct, td.rec {
 }
 
 table {
-    width: 100%;
     font-size: 21px;
     max-height: 100%;
     overflow: scroll;
     margin-bottom: 1em;
 }
 
-table, tr {
+table.chances {
+    width: 100%;
+}
+
+table.infobox {
+    width: 18em;
+}
+
+table.infobox img.team-logo {
+    height: 7em;
+    margin: 0.5em auto;
+}
+
+table {
     border: 2px solid black;
+}
+
+tr.head {
+    background-color: white;
+    border-bottom: 2px solid black;
 }
 
 table, tr, td, th {
@@ -58,11 +75,14 @@ td.team-header {
     text-align: center;
 }
 
-table.infobox img.team-logo {
-    height: 20em;
-    margin: auto;
+table.infobox td.rec {
+    background:
+        linear-gradient(gray 0 0) left / 1px 85%,
+        white;
+    background-repeat: no-repeat;
 }
 
+tr.head img,
 td.team img,
 table .conference img {
     max-height: 1.75em;
@@ -92,6 +112,7 @@ td.head {
     padding: 0.5em 0.25em;
 }
 
+tr.head,
 td.team {
     font-weight: bold;
     height: 2em;
@@ -141,4 +162,9 @@ a {
     max-width: 1450px;
     margin: 100px auto 0 auto;
     min-height: 100%;
+}
+
+.flex-container {
+    display: flex;
+    flex-wrap: nowrap;
 }
