@@ -35,6 +35,7 @@ const gameRepo = simDataSource.getRepository(Game);
 const teamChancesRepo = simDataSource.getRepository(TeamChances);
 const teamChancesByGameRepo = simDataSource.getRepository(TeamChancesByGame);
 
+var teamAppearances: TeamAppearances[];
 const simGames: GameObj[] = [];
 const simSeed7s: AppearanceObj[] = [];
 const simSeed6s: AppearanceObj[] = [];
@@ -85,6 +86,8 @@ export default async function main (): Promise<void> {
 			}
 		}
 	});
+
+	teamAppearances = teams.map(t => new TeamAppearances(t.id));
 
 	const divisions = await divisionRepo.find();
 	const conferences = await conferenceRepo.find();
@@ -146,7 +149,7 @@ export default async function main (): Promise<void> {
 	});
 
 	for (let i = 0; i < soonGames.length; i++) {
-		await analyzeGame(teams, soonGames[i]);
+		// await analyzeGame(teams, soonGames[i]);
 		printProgress(String(((i + 1) / soonGames.length) * 100));
 	}
 
@@ -454,104 +457,40 @@ async function simulate (
 	for (let i = 0; i < conferences.length; i++) {
 		let confTeams = teams.filter(t => t.conferenceId === conferences[i].id);
 		confTeams = nflSort(confTeams, divisions.filter(d => d.conferenceId === conferences[i].id).map(d => d.id));
+		
+		for (let j = 0; j <= 6; j++) {
+			const appearance = teamAppearances.find(ta => ta.id === confTeams[j].id);
 
-		simSeed7s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[2].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[3].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[4].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[5].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[6].id
-		});
+			if (appearance === undefined) {
+				continue;
+			}
 
-		simSeed6s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[2].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[3].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[4].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[5].id
-		});
+			if (j < 1) {
+				appearance.numSeed1++;
+			}
 
-		simSeed5s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[2].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[3].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[4].id
-		});
+			if (j < 2) {
+				appearance.numSeed2++;
+			}
 
-		simSeed4s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[2].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[3].id
-		});
+			if (j < 3) {
+				appearance.numSeed3++;
+			}
 
-		simSeed3s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[2].id
-		});
+			if (j < 4) {
+				appearance.numSeed4++;
+			}
 
-		simSeed2s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		});
+			if (j < 5) {
+				appearance.numSeed5++;
+			}
 
-		simSeed1s.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		});
+			if (j < 6) {
+				appearance.numSeed6++;
+			}
+
+			appearance.numSeed7++;
+		}
 
 		for (let i = 0; i < confTeams.length; i++) {
 			confTeams[i].seed = i + 1;
@@ -647,17 +586,14 @@ async function simulate (
 		const confTeams = teams
 			.filter(t => t.conferenceId === conferences[i].id)
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
-
-		simWcHosts.push({
-			simSeasonId: sim,
-			teamId: confTeams[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[2].id
-		}, {
-			simSeasonId: sim,
-			teamId: confTeams[3].id
-		});
+		
+		for (let j = 1; j <= 3; j++) {
+			const appearance = teamAppearances.find(ta => ta.id === confTeams[j].id);
+	
+			if (appearance !== undefined) {
+				appearance.numHostWc++;
+			}
+		}
 
 		const wcGame1 = postSeasonGames.find(g =>
 			g.homeTeamId === confTeams[1].id && g.awayTeamId === confTeams[6].id);
@@ -684,28 +620,25 @@ async function simulate (
 		const confWcWinners = wcWinners
 			.filter(t => t.conferenceId === conferences[i].id)
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
+		
+		for (let j = 0; j <= 2; j++) {
+			const appearance = teamAppearances.find(ta => ta.id === confWcWinners[j].id);
+		
+			if (appearance !== undefined) {
+				appearance.numMakeDiv++;
 
-		simDivQualifiers.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confWcWinners[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confWcWinners[1].id
-		}, {
-			simSeasonId: sim,
-			teamId: confWcWinners[2].id
-		});
+				if (j === 0) {
+					appearance.numHostDiv++;
+				}
+			}
+		}
 
-		simDivHosts.push({
-			simSeasonId: sim,
-			teamId: confTeams[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confWcWinners[0].id
-		});
+		const appearance = teamAppearances.find(ta => ta.id === confTeams[0].id);
+
+		if (appearance !== undefined) {
+			appearance.numMakeDiv++;
+			appearance.numHostDiv++;
+		}
 
 		const divGame1 = postSeasonGames.find(g =>
 			g.homeTeamId === confTeams[0].id && g.awayTeamId === confWcWinners[2].id);
@@ -726,18 +659,17 @@ async function simulate (
 			.filter(t => t.conferenceId === conferences[i].id)
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 
-		simConfQualifiers.push({
-			simSeasonId: sim,
-			teamId: confDivWinners[0].id
-		}, {
-			simSeasonId: sim,
-			teamId: confDivWinners[1].id
-		});
+		for (let j = 0; j <= 1; j++) {
+			const appearance = teamAppearances.find(ta => ta.id === confDivWinners[j].id);
 
-		simConfHosts.push({
-			simSeasonId: sim,
-			teamId: confDivWinners[0].id
-		});
+			if (appearance !== undefined) {
+				appearance.numMakeConf++;
+
+				if (j === 0) {
+					appearance.numHostConf++;
+				}
+			}
+		}
 
 		const confGame = postSeasonGames.find(g =>
 			g.homeTeamId === confDivWinners[0].id && g.awayTeamId === confDivWinners[1].id);
@@ -745,15 +677,12 @@ async function simulate (
 		if (confGame === undefined) {
 			const winner = await simulatePlayoffGame(confDivWinners[0], confDivWinners[1], false, false);
 			confWinners = confWinners.concat(winner);
-		}
 
-		const confWinner = confWinners.find(t => t.conferenceId === conferences[i].id);
+			const appearance = teamAppearances.find(ta => ta.id === winner.id);
 
-		if (confWinner !== undefined) {
-			simSuperBowlQualifiers.push({
-				simSeasonId: sim,
-				teamId: confWinner.id
-			});
+			if (appearance !== undefined) {
+				appearance.numMakeSb++;
+			}
 		}
 	}
 
@@ -767,10 +696,11 @@ async function simulate (
 		}
 	}
 
-	simSuperBowlWinners.push({
-		simSeasonId: sim,
-		teamId: superBowlWinner.id
-	});
+	const appearance = teamAppearances.find(ta => ta.id === superBowlWinner.id);
+
+	if (appearance !== undefined) {
+		appearance.numWinSb++;
+	}
 }
 
 async function simulatePlayoffGame (
@@ -1153,20 +1083,20 @@ async function analyzeGame (teams: Team[], game: Game): Promise<void> {
 }
 
 async function analyzeTeam (team: Team, games: Game[], week: number): Promise<void> {
-	const totalSeed7 = simSeed7s.filter(s => s.teamId === team.id).length;
-	const totalSeed6 = simSeed6s.filter(s => s.teamId === team.id).length;
-	const totalSeed5 = simSeed5s.filter(s => s.teamId === team.id).length;
-	const totalSeed4 = simSeed4s.filter(s => s.teamId === team.id).length;
-	const totalSeed3 = simSeed3s.filter(s => s.teamId === team.id).length;
-	const totalSeed2 = simSeed2s.filter(s => s.teamId === team.id).length;
-	const totalSeed1 = simSeed1s.filter(s => s.teamId === team.id).length;
-	const totalHostWc = simWcHosts.filter(s => s.teamId === team.id).length;
-	const totalHostDiv = simDivHosts.filter(s => s.teamId === team.id).length;
-	const totalHostConf = simConfHosts.filter(s => s.teamId === team.id).length;
-	const totalMakeDiv = simDivQualifiers.filter(s => s.teamId === team.id).length;
-	const totalMakeConf = simConfQualifiers.filter(s => s.teamId === team.id).length;
-	const totalMakeSb = simSuperBowlQualifiers.filter(s => s.teamId === team.id).length;
-	const totalWinSb = simSuperBowlWinners.filter(s => s.teamId === team.id).length;
+	const totalSeed7 = teamAppearances.find(ta => ta.id === team.id)?.numSeed7 ?? 0;
+	const totalSeed6 = teamAppearances.find(ta => ta.id === team.id)?.numSeed6 ?? 0;
+	const totalSeed5 = teamAppearances.find(ta => ta.id === team.id)?.numSeed5 ?? 0;
+	const totalSeed4 = teamAppearances.find(ta => ta.id === team.id)?.numSeed4 ?? 0;
+	const totalSeed3 = teamAppearances.find(ta => ta.id === team.id)?.numSeed3 ?? 0;
+	const totalSeed2 = teamAppearances.find(ta => ta.id === team.id)?.numSeed2 ?? 0;
+	const totalSeed1 = teamAppearances.find(ta => ta.id === team.id)?.numSeed1 ?? 0;
+	const totalHostWc = teamAppearances.find(ta => ta.id === team.id)?.numHostWc ?? 0;
+	const totalHostDiv = teamAppearances.find(ta => ta.id === team.id)?.numHostDiv ?? 0;
+	const totalHostConf = teamAppearances.find(ta => ta.id === team.id)?.numHostConf ?? 0;
+	const totalMakeDiv = teamAppearances.find(ta => ta.id === team.id)?.numMakeDiv ?? 0;
+	const totalMakeConf = teamAppearances.find(ta => ta.id === team.id)?.numMakeConf ?? 0;
+	const totalMakeSb = teamAppearances.find(ta => ta.id === team.id)?.numMakeSb ?? 0;
+	const totalWinSb = teamAppearances.find(ta => ta.id === team.id)?.numWinSb ?? 0;
 
 	const seed7Chance = totalSeed7 / SIMS;
 	const seed6Chance = totalSeed6 / SIMS;
@@ -1182,47 +1112,6 @@ async function analyzeTeam (team: Team, games: Game[], week: number): Promise<vo
 	let makeConfChance = totalMakeConf / SIMS;
 	let makeSbChance = totalMakeSb / SIMS;
 	let winSbChance = totalWinSb / SIMS;
-
-	const teamPlayoffGames = games
-		.filter(g =>
-			g.seasonType === SeasonType.POST && (g.homeTeamId === team.id || g.awayTeamId === team.id))
-		.sort((a, b) => a.startDateTime > b.startDateTime ? 1 : -1);
-
-	for (let i = 0; i < teamPlayoffGames.length; i++) {
-		if (((i < 3 && (winSbChance === 0 || winSbChance === 1)) || (i === 3 && winSbChance === 0)) && teamPlayoffGames[i].homeScore === null) {
-			if (makeDivChance === 0) {
-				makeDivChance = 0.000001;
-			}
-
-			if (makeDivChance === 1) {
-				makeDivChance = 0.999999;
-			}
-
-			if (makeConfChance === 0) {
-				makeConfChance = 0.000001;
-			}
-
-			if (makeConfChance === 1) {
-				makeConfChance = 0.999999;
-			}
-
-			if (makeSbChance === 0) {
-				makeSbChance = 0.000001;
-			}
-
-			if (makeSbChance === 1) {
-				makeSbChance = 0.999999;
-			}
-
-			if (winSbChance === 0) {
-				winSbChance = 0.000001;
-			}
-
-			if (winSbChance === 1) {
-				winSbChance = 0.999999;
-			}
-		}
-	}
 
 	await teamChancesRepo.save({
 		teamId: team.id,
@@ -1251,9 +1140,26 @@ class GameObj {
 	winningTeamId: number | undefined;
 }
 
-class AppearanceObj {
-	simSeasonId: number;
-	teamId: number;
+class TeamAppearances {
+	id: number;
+	numSeed7: number = 0;
+	numSeed6: number = 0;
+	numSeed5: number = 0;
+	numSeed4: number = 0;
+	numSeed3: number = 0;
+	numSeed2: number = 0;
+	numSeed1: number = 0;
+	numHostWc: number = 0;
+	numHostDiv: number = 0;
+	numHostConf: number = 0;
+	numMakeDiv: number = 0;
+	numMakeConf: number = 0;
+	numMakeSb: number = 0;
+	numWinSb: number = 0;
+
+	constructor (id: number) {
+		this.id = id;
+	}
 }
 
 function printProgress (progress: string): void {
