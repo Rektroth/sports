@@ -39,15 +39,9 @@ block content
             td.head= 'Super Bowl Winner'
         each chance in chances
             tr
-                +pcttd(Number(chance.awayWinSuperBowl > 0 ?
-                    chance.awayWinSuperBowl : (chance.awayWinSuperBowl && chance.game.season == 'regular') > 0 ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.awayMakeSuperBowl > 0 ?
-                    chance.awayMakeSuperBowl : (chance.awayMakeSuperBowl > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.awayMakeConference > 0 ?
-                    chance.awayMakeConference : (chance.awayMakeConference > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
+                +pcttd(Number(chance.awayWinSuperBowl))
+                +pcttd(Number(chance.awayMakeSuperBowl))
+                +pcttd(Number(chance.awayMakeConference))
                 +pcttd(Number(chance.awaySeed1))
                 +pcttd(Number(chance.awaySeed4))
                 +pcttd(Number(chance.awaySeed7))
@@ -58,12 +52,6 @@ block content
                 +pcttd(Number(chance.homeSeed7))
                 +pcttd(Number(chance.homeSeed4))
                 +pcttd(Number(chance.homeSeed1))
-                +pcttd(Number(chance.homeMakeConference > 0 ?
-                    chance.homeMakeConference : (chance.homeMakeConference > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.homeMakeSuperBowl > 0 ?
-                    chance.homeMakeSuperBowl : (chance.homeMakeSuperBowl > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
-                +pcttd(Number(chance.homeWinSuperBowl > 0 ?
-                    chance.homeWinSuperBowl : (chance.homeWinSuperBowl > 0 && chance.game.season == 'regular') ?
-                    0.00001 : 0))
+                +pcttd(Number(chance.homeMakeConference))
+                +pcttd(Number(chance.homeMakeSuperBowl))
+                +pcttd(Number(chance.homeWinSuperBowl))
