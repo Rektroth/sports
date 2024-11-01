@@ -46,13 +46,13 @@ table.infobox.left {
     width: 30%;
 }
 
-table.infobox.right {
+table.infobox.center {
     margin-left: 1em;
-    width: 40%;
+    width: 20%;
 }
 
 table.infobox img.team-logo {
-    height: 7em;
+    height: 188px;
     margin: 0.5em auto;
 }
 
@@ -125,6 +125,10 @@ td.team {
 
 td.pct {
     text-align: right;
+}
+
+table.infobox td.head {
+    padding-left: 0.5em;
 }
 
 td.rec, td.date {
