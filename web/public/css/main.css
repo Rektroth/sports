@@ -42,8 +42,13 @@ table.chances {
     width: 100%;
 }
 
-table.infobox {
-    width: 18em;
+table.infobox.left {
+    width: 30%;
+}
+
+table.infobox.right {
+    margin-left: 1em;
+    width: 40%;
 }
 
 table.infobox img.team-logo {
@@ -77,7 +82,7 @@ td.team-header {
 
 table.infobox td.rec {
     background:
-        linear-gradient(gray 0 0) left / 1px 85%,
+        linear-gradient(gray 0 0) left / 1px 78%,
         white;
     background-repeat: no-repeat;
 }
@@ -150,8 +155,8 @@ footer {
 }
 
 h1 {
-    padding: 1em;
-    margin: 0;
+    max-width: 1450px;
+    margin: 0.5em auto;
 }
 
 a {

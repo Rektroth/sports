@@ -2,7 +2,7 @@ extends templates/layout
 include mixins/pcttd
 block content
     div.flex-container
-        table.infobox
+        table.infobox.left
             tr
                 td(colspan=3, style='background-color:' + team.color1)
                     img.team-logo(src='../../img/' + team.abbreviation.toLowerCase() + '.svg')
@@ -17,6 +17,45 @@ block content
             tr
                 td.head= 'Elo'
                 td.rec(colspan=2)= Math.round(team.elo)
+        table.infobox.right
+            tr
+                td(colspan=2).head= 'Seeding Probabilities'
+                td(colspan=2).head= 'Playoff Performance Probabilities'
+            tr
+                td.head= 'Wild Card #3'
+                +pcttd(team.chances[0].seed7)
+                td.head= 'Host Wild Card Rnd'
+                +pcttd(team.chances[0].hostWildCard)
+            tr
+                td.head= 'Wild Card #2'
+                +pcttd(team.chances[0].seed6)
+                td.head= 'Make Division Rnd'
+                +pcttd(team.chances[0].makeDivision)
+            tr
+                td.head= 'Wild Card #1'
+                +pcttd(team.chances[0].seed5)
+                td.head= 'Host Division Rnd'
+                +pcttd(team.chances[0].hostDivision)
+            tr
+                td.head= 'Division Leader #4'
+                +pcttd(team.chances[0].seed4)
+                td.head= 'Make Conference Rnd'
+                +pcttd(team.chances[0].makeConference)
+            tr
+                td.head= 'Division Leader #3'
+                +pcttd(team.chances[0].seed3)
+                td.head= 'Host Conference Rnd'
+                +pcttd(team.chances[0].hostConference)
+            tr
+                td.head= 'Division Leader #2'
+                +pcttd(team.chances[0].seed2)
+                td.head= 'Make Super Bowl'
+                +pcttd(team.chances[0].makeSuperBowl)
+            tr
+                td.head= 'Conference Leader'
+                +pcttd(team.chances[0].seed1)
+                td.head= 'Win Super Bowl'
+                +pcttd(team.chances[0].winSuperBowl)
     table.chances
         tr
             td(colspan=8).head= 'Probabilities w/ Away Victory'
