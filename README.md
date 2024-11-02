@@ -107,8 +107,6 @@ To update the database with the latest season data from ESPN (which must be done
 
 To run the simulator, run `npm run simulate`.
 
-Should you run more than around ~100000 simulations, you will need to increase the JavaScript heap size. To do so, run `export NODE_OPTIONS="--max-old-space-size=8192"`, replacing `8192` with the number of MB that you would like to allocate. In this example, `8192` sets the JavaScript heap size to 8GB.
-
 ## Web
 
 Located in the `web` directory.
