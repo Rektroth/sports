@@ -6,8 +6,12 @@ html
         script(src='/js/sort.js')
     body
         header
-            h1
-                a(href='../teams')= 'Rektroth Analytics'
+            .header-inner
+                h1
+                    a(href='../teams')= 'Rektroth Analytics'
+                .header-nav
+                    a(href='../teams')= 'Teams'
+                    a(href='../games')= 'Games'
         .main-wrapper
             block content
         footer

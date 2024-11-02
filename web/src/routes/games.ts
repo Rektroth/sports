@@ -1,8 +1,47 @@
 import 'reflect-metadata';
 import express, { type Express, type Request, type Response } from 'express';
-import { type Repository, LessThan } from 'typeorm';
+import { LessThan, type Repository } from 'typeorm';
 import { chance } from '@rektroth/elo';
-import { type Game, type TeamChancesByGame, type TeamElo } from '@rektroth/sports-entities';
+import {
+	type Game,
+	type SeasonType,
+	type Team,
+	type TeamChancesByGame,
+	type TeamElo
+} from '@rektroth/sports-entities';
+
+class GameView {
+	id: number;
+	homeTeam?: Team;
+	awayTeam?: Team;
+	neutralSite: boolean;
+	seasonType: SeasonType;
+	homeChance: number = 0;
+	awayChance: number = 0;
+	homeScore?: number;
+	awayScore?: number;
+	date: Date;
+
+	constructor(
+		id: number,
+		neutralSite: boolean,
+		seasonType: SeasonType,
+		date: Date,
+		homeTeam?: Team,
+		awayTeam?: Team,
+		homeScore?: number,
+		awayScore?: number
+	) {
+		this.id = id;
+		this.homeTeam = homeTeam;
+		this.awayTeam = awayTeam;
+		this.neutralSite = neutralSite;
+		this.seasonType = seasonType;
+		this.date = date;
+		this.homeScore = homeScore;
+		this.awayScore = awayScore;
+	}
+}
 
 const app = express();
 
@@ -11,6 +50,105 @@ export default function GameRoutes (
 	teamChancesByGameRepo: Repository<TeamChancesByGame>,
 	eloRepo: Repository<TeamElo>
 ): Express {
+	app.get('/', async (req: Request, res: Response) => {
+		const games = await gameRepo.find({
+			relations: {
+				homeTeam: true,
+				awayTeam: true
+			},
+			where: {
+				season: 2024
+			},
+			order: {
+				startDateTime: 'ASC'
+			}
+		});
+
+		const gameViews = games.map(g => new GameView(g.id, g.neutralSite, g.seasonType, g.startDateTime, g.homeTeam, g.awayTeam, g.homeScore, g.awayScore));
+
+		for (let i = 0; i < gameViews.length; i++) {
+			const homeTeamElo = await eloRepo.findOne({
+				where: {
+					teamId: gameViews[i].homeTeam?.id,
+					date: LessThan(gameViews[i].date)
+				},
+				order: {
+					date: 'DESC'
+				}
+			});
+	
+			const awayTeamElo = await eloRepo.findOne({
+				where: {
+					teamId: gameViews[i].awayTeam?.id,
+					date: LessThan(gameViews[i].date)
+				},
+				order: {
+					date: 'DESC'
+				}
+			});
+	
+			const homeTeamLastGameDate = (await gameRepo.findOne({
+				where: [{
+					homeTeamId: gameViews[i].homeTeam?.id,
+					startDateTime: LessThan(gameViews[i].date)
+				}, {
+					awayTeamId: gameViews[i].awayTeam?.id,
+					startDateTime: LessThan(gameViews[i].date)
+				}],
+				order: {
+					startDateTime: 'DESC'
+				}
+			}))?.startDateTime.getTime();
+	
+			const awayTeamLastGameDate = (await gameRepo.findOne({
+				where: [{
+					homeTeamId: gameViews[i].homeTeam?.id,
+					startDateTime: LessThan(gameViews[i].date)
+				}, {
+					awayTeamId: gameViews[i].awayTeam?.id,
+					startDateTime: LessThan(gameViews[i].date)
+				}],
+				order: {
+					startDateTime: 'DESC'
+				}
+			}))?.startDateTime.getTime();
+	
+			let homeBreak = 7;
+			let awayBreak = 7;
+	
+			if (homeTeamLastGameDate !== null && homeTeamLastGameDate !== undefined) {
+				homeBreak = (gameViews[i].date.getTime() - homeTeamLastGameDate) / 1000 / 60 / 60 / 24;
+			}
+	
+			if (awayTeamLastGameDate !== null && awayTeamLastGameDate !== undefined) {
+				awayBreak = (gameViews[i].date.getTime() - awayTeamLastGameDate) / 1000 / 60 / 60 / 24;
+			}
+	
+			const homeElo = homeTeamElo?.eloScore ?? 1500;
+			const awayElo = awayTeamElo?.eloScore ?? 1500;
+	
+			gameViews[i].homeChance = chance(
+				homeElo,
+				awayElo,
+				!gameViews[i].neutralSite,
+				false,
+				gameViews[i].seasonType,
+				homeBreak,
+				awayBreak);
+	
+			gameViews[i].awayChance = chance(
+				awayElo,
+				homeElo,
+				false,
+				!gameViews[i].neutralSite,
+				gameViews[i].seasonType,
+				awayBreak,
+				homeBreak);
+		}
+		
+		res.render('games', { games: gameViews });
+	});
+
 	app.get('/:id', async (req: Request, res: Response) => {
 		const gameId = Number(req.params.id);
 
@@ -49,7 +187,8 @@ export default function GameRoutes (
 
 		const homeTeamElo = await eloRepo.findOne({
 			where: {
-				teamId: game.homeTeamId
+				teamId: game.homeTeamId,
+				date: LessThan(game.startDateTime)
 			},
 			order: {
 				date: 'DESC'
@@ -58,7 +197,8 @@ export default function GameRoutes (
 
 		const awayTeamElo = await eloRepo.findOne({
 			where: {
-				teamId: game.awayTeamId
+				teamId: game.awayTeamId,
+				date: LessThan(game.startDateTime)
 			},
 			order: {
 				date: 'DESC'

@@ -1,7 +1,7 @@
 import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import express, { type Request, type Response } from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import fs from 'fs';
 import helmet from 'helmet';
 import http from 'http';
@@ -43,17 +43,17 @@ app.use(helmet({
 app.use(compression());
 app.use(cors({ origin: HOST, credentials: true }));
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '../views'));
 app.use(express.static('public'));
 
-const webDataSource = SportsDataSource(DB_SCHEMA, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
-webDataSource.initialize().then(() => {
+const nflDataSource = SportsDataSource(DB_SCHEMA, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
+nflDataSource.initialize().then(() => {
 	console.log('Data source initialized!');
 
-	const teamRepo = webDataSource.getRepository(Team);
-	const gameRepo = webDataSource.getRepository(Game);
-	const teamChancesByGameRepo = webDataSource.getRepository(TeamChancesByGame);
-	const eloRepo = webDataSource.getRepository(TeamElo);
+	const teamRepo = nflDataSource.getRepository(Team);
+	const gameRepo = nflDataSource.getRepository(Game);
+	const teamChancesByGameRepo = nflDataSource.getRepository(TeamChancesByGame);
+	const eloRepo = nflDataSource.getRepository(TeamElo);
 
 	app.get('/', (req: Request, res: Response) => {
 		res.redirect('/teams');
@@ -61,25 +61,23 @@ webDataSource.initialize().then(() => {
 
 	app.use('/games', GameRoutes(gameRepo, teamChancesByGameRepo, eloRepo));
 	app.use('/teams', TeamRoutes(teamRepo, teamChancesByGameRepo, gameRepo, eloRepo));
+	app.use((req: Request, res: Response, next: NextFunction) => {
+		res.render('404');
+	});
 
 	if (PRIVATE_KEY !== null && CERTIFICATE !== null) {
 		const httpApp = express();
 		httpApp.all('*', (req, res) => { res.redirect(300, 'https://' + HOST); });
-		const httpServer = http.createServer(httpApp);
-		httpServer.listen({ port: PORT }, () => {
-			console.log(`HTTP service listening on port ${PORT}!`);
-		});
-
 		const httpsServer = https.createServer({ key: PRIVATE_KEY, cert: CERTIFICATE }, app);
 		httpsServer.listen({ port: SSL_PORT }, () => {
 			console.log(`HTTPS service listening on port ${SSL_PORT}!`);
 		});
-	} else {
-		const httpServer = http.createServer(app);
-		httpServer.listen({ port: PORT }, () => {
-			console.log(`HTTP service listening on port ${PORT}!`);
-		});
 	}
+	
+	const httpServer = http.createServer(app);
+	httpServer.listen({ port: PORT }, () => {
+		console.log(`HTTP service listening on port ${PORT}!`);
+	});
 }).catch((e: string) => {
 	console.log(e);
 });

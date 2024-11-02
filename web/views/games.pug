@@ -1,0 +1,26 @@
+extends templates/layout
+include mixins/pcttd
+block content
+    table.chances
+        tr
+            td.head= 'Chance'
+            td.head= 'Away Team'
+            td.head= 'Away Score'
+            td.head= 'Date'
+            td.head= 'Home Score'
+            td.head= 'Home Team'
+            td.head= 'Chance'
+        each game in games
+            tr
+                +pcttd(Number(game.awayChance))
+                td.team(style='background-color:' + game.awayTeam.color2)
+                    a(href='/teams/' + game.awayTeam.id)
+                        img(src='../img/' + game.awayTeam.abbreviation.toLowerCase() + '.svg')
+                td.rec(style='background-color:' + (game.awayScore > game.homeScore ? '#7f7fff' : '#ffffff'))= game.awayScore
+                td.date
+                    a(href='../games/' + game.id)= String(game.date).substring(0, 24)
+                td.rec(style='background-color:' + (game.awayScore < game.homeScore ? '#7f7fff' : '#ffffff'))= game.homeScore
+                td.team(style='background-color:' + game.homeTeam.color1)
+                    a(href='/teams/' + game.homeTeam.id)
+                        img(src='../img/' + game.homeTeam.abbreviation.toLowerCase() + '.svg')
+                +pcttd(Number(game.homeChance))
