@@ -65,6 +65,8 @@ block content
             tr
                 td.head= 'Win Super Bowl'
                 +pcttd(team.chances[0].winSuperBowl)
+    .chart
+        canvas#myChart
     table.chances
         tr
             td(colspan=8).head= 'Probabilities w/ Away Victory'

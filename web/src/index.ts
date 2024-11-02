@@ -36,7 +36,7 @@ app.use(helmet({
 		useDefaults: false,
 		directives: {
 			defaultSrc: ["'self'", "'unsafe-inline'"],
-			scriptSrc: ["'self'", "'unsafe-inline'"]
+			scriptSrc: ["'self'", "cdn.jsdelivr.net"]
 		}
 	}
 }));
