@@ -1125,66 +1125,69 @@ async function analysis(week: number): Promise<void> {
 		const gameAppearances = appearances[i].gameAppearances;
 
 		for (let j = 0; j < gameAppearances.length; j++) {
-			const homeSeed7Chance = gameAppearances[j].numSeed7Home / gameAppearances[j].homeWins;
-			const homeSeed6Chance = gameAppearances[j].numSeed6Home / gameAppearances[j].homeWins;
-			const homeSeed5Chance = gameAppearances[j].numSeed5Home / gameAppearances[j].homeWins;
-			const homeSeed4Chance = gameAppearances[j].numSeed4Home / gameAppearances[j].homeWins;
-			const homeSeed3Chance = gameAppearances[j].numSeed3Home / gameAppearances[j].homeWins;
-			const homeSeed2Chance = gameAppearances[j].numSeed2Home / gameAppearances[j].homeWins;
-			const homeSeed1Chance = gameAppearances[j].numSeed1Home / gameAppearances[j].homeWins;
-			const homeMakeDivChance = gameAppearances[j].numMakeDivHome / gameAppearances[j].homeWins;
-			const homeMakeConfChance = gameAppearances[j].numMakeConfHome / gameAppearances[j].homeWins;
-			const homeMakeSbChance = gameAppearances[j].numMakeSbHome / gameAppearances[j].homeWins;
-			const homeWinSbChance = gameAppearances[j].numWinSbHome / gameAppearances[j].homeWins;
-			const homeHostWcChance = gameAppearances[j].numHostWcHome / gameAppearances[j].homeWins;
-			const homeHostDivChance = gameAppearances[j].numHostDivHome / gameAppearances[j].homeWins;
-			const homeHostConfChance = gameAppearances[j].numHostConfHome / gameAppearances[j].homeWins;
-			const awaySeed7Chance = gameAppearances[j].numSeed7Away / gameAppearances[j].awayWins;
-			const awaySeed6Chance = gameAppearances[j].numSeed6Away / gameAppearances[j].awayWins;
-			const awaySeed5Chance = gameAppearances[j].numSeed5Away / gameAppearances[j].awayWins;
-			const awaySeed4Chance = gameAppearances[j].numSeed4Away / gameAppearances[j].awayWins;
-			const awaySeed3Chance = gameAppearances[j].numSeed3Away / gameAppearances[j].awayWins;
-			const awaySeed2Chance = gameAppearances[j].numSeed2Away / gameAppearances[j].awayWins;
-			const awaySeed1Chance = gameAppearances[j].numSeed1Away / gameAppearances[j].awayWins;
-			const awayMakeDivChance = gameAppearances[j].numMakeDivAway / gameAppearances[j].awayWins;
-			const awayMakeConfChance = gameAppearances[j].numMakeConfAway / gameAppearances[j].awayWins;
-			const awayMakeSbChance = gameAppearances[j].numMakeSbAway / gameAppearances[j].awayWins;
-			const awayWinSbChance = gameAppearances[j].numWinSbAway / gameAppearances[j].awayWins;
-			const awayHostWcChance = gameAppearances[j].numHostWcAway / gameAppearances[j].awayWins;
-			const awayHostDivChance = gameAppearances[j].numHostDivAway / gameAppearances[j].awayWins;
-			const awayHostConfChance = gameAppearances[j].numHostConfAway / gameAppearances[j].awayWins;
+			const numHomeWins = gameAppearances[j].homeWins;
+			const numAwayWins = gameAppearances[j].awayWins;
+
+			const homeSeed7Chance = gameAppearances[j].numSeed7Home / numHomeWins;
+			const homeSeed6Chance = gameAppearances[j].numSeed6Home / numHomeWins;
+			const homeSeed5Chance = gameAppearances[j].numSeed5Home / numHomeWins;
+			const homeSeed4Chance = gameAppearances[j].numSeed4Home / numHomeWins;
+			const homeSeed3Chance = gameAppearances[j].numSeed3Home / numHomeWins;
+			const homeSeed2Chance = gameAppearances[j].numSeed2Home / numHomeWins;
+			const homeSeed1Chance = gameAppearances[j].numSeed1Home / numHomeWins;
+			const homeMakeDivChance = gameAppearances[j].numMakeDivHome / numHomeWins;
+			const homeMakeConfChance = gameAppearances[j].numMakeConfHome / numHomeWins;
+			const homeMakeSbChance = gameAppearances[j].numMakeSbHome / numHomeWins;
+			const homeWinSbChance = gameAppearances[j].numWinSbHome / numHomeWins;
+			const homeHostWcChance = gameAppearances[j].numHostWcHome / numHomeWins;
+			const homeHostDivChance = gameAppearances[j].numHostDivHome / numHomeWins;
+			const homeHostConfChance = gameAppearances[j].numHostConfHome / numHomeWins;
+			const awaySeed7Chance = gameAppearances[j].numSeed7Away / numAwayWins;
+			const awaySeed6Chance = gameAppearances[j].numSeed6Away / numAwayWins;
+			const awaySeed5Chance = gameAppearances[j].numSeed5Away / numAwayWins;
+			const awaySeed4Chance = gameAppearances[j].numSeed4Away / numAwayWins;
+			const awaySeed3Chance = gameAppearances[j].numSeed3Away / numAwayWins;
+			const awaySeed2Chance = gameAppearances[j].numSeed2Away / numAwayWins;
+			const awaySeed1Chance = gameAppearances[j].numSeed1Away / numAwayWins;
+			const awayMakeDivChance = gameAppearances[j].numMakeDivAway / numAwayWins;
+			const awayMakeConfChance = gameAppearances[j].numMakeConfAway / numAwayWins;
+			const awayMakeSbChance = gameAppearances[j].numMakeSbAway / numAwayWins;
+			const awayWinSbChance = gameAppearances[j].numWinSbAway / numAwayWins;
+			const awayHostWcChance = gameAppearances[j].numHostWcAway / numAwayWins;
+			const awayHostDivChance = gameAppearances[j].numHostDivAway / numAwayWins;
+			const awayHostConfChance = gameAppearances[j].numHostConfAway / numAwayWins;
 
 			await teamChancesByGameRepo.save({
 				gameId: gameAppearances[j].gameId,
 				teamId: appearances[i].teamId,
-				homeSeed7: homeSeed7Chance,
-				homeSeed6: homeSeed6Chance,
-				homeSeed5: homeSeed5Chance,
-				homeSeed4: homeSeed4Chance,
-				homeSeed3: homeSeed3Chance,
-				homeSeed2: homeSeed2Chance,
-				homeSeed1: homeSeed1Chance,
-				homeHostWildCard: homeHostWcChance,
-				homeHostDivision: homeHostDivChance,
-				homeHostConference: homeHostConfChance,
-				homeMakeDivision: homeMakeDivChance,
-				homeMakeConference: homeMakeConfChance,
-				homeMakeSuperBowl: homeMakeSbChance,
-				homeWinSuperBowl: homeWinSbChance,
-				awaySeed7: awaySeed7Chance,
-				awaySeed6: awaySeed6Chance,
-				awaySeed5: awaySeed5Chance,
-				awaySeed4: awaySeed4Chance,
-				awaySeed3: awaySeed3Chance,
-				awaySeed2: awaySeed2Chance,
-				awaySeed1: awaySeed1Chance,
-				awayHostWildCard: awayHostWcChance,
-				awayHostDivision: awayHostDivChance,
-				awayHostConference: awayHostConfChance,
-				awayMakeDivision: awayMakeDivChance,
-				awayMakeConference: awayMakeConfChance,
-				awayMakeSuperBowl: awayMakeSbChance,
-				awayWinSuperBowl: awayWinSbChance
+				homeSeed7: (Math.abs(homeSeed7Chance - seed7Chance) > marginOfError(homeSeed7Chance, numHomeWins)) ? homeSeed7Chance : seed7Chance,
+				homeSeed6: (Math.abs(homeSeed6Chance - seed6Chance) > marginOfError(homeSeed6Chance, numHomeWins)) ? homeSeed6Chance : seed6Chance,
+				homeSeed5: (Math.abs(homeSeed5Chance - seed5Chance) > marginOfError(homeSeed5Chance, numHomeWins)) ? homeSeed5Chance : seed5Chance,
+				homeSeed4: (Math.abs(homeSeed4Chance - seed4Chance) > marginOfError(homeSeed4Chance, numHomeWins)) ? homeSeed4Chance : seed4Chance,
+				homeSeed3: (Math.abs(homeSeed3Chance - seed3Chance) > marginOfError(homeSeed3Chance, numHomeWins)) ? homeSeed3Chance : seed3Chance,
+				homeSeed2: (Math.abs(homeSeed2Chance - seed2Chance) > marginOfError(homeSeed2Chance, numHomeWins)) ? homeSeed2Chance : seed2Chance,
+				homeSeed1: (Math.abs(homeSeed1Chance - seed1Chance) > marginOfError(homeSeed1Chance, numHomeWins)) ? homeSeed1Chance : seed1Chance,
+				homeHostWildCard: (Math.abs(homeHostWcChance - hostWcChance) > marginOfError(homeHostWcChance, numHomeWins)) ? homeHostWcChance : hostWcChance,
+				homeHostDivision: (Math.abs(homeHostDivChance - hostDivChance) > marginOfError(homeHostDivChance, numHomeWins)) ? homeHostDivChance : hostDivChance,
+				homeHostConference: (Math.abs(homeHostConfChance - hostConfChance) > marginOfError(homeHostConfChance, numHomeWins)) ? homeHostConfChance : hostConfChance,
+				homeMakeDivision: (Math.abs(homeMakeDivChance - makeDivChance) > marginOfError(homeMakeDivChance, numHomeWins)) ? homeMakeDivChance : makeDivChance,
+				homeMakeConference: (Math.abs(homeMakeConfChance - makeConfChance) > marginOfError(homeMakeConfChance, numHomeWins)) ? homeMakeConfChance : makeConfChance,
+				homeMakeSuperBowl: (Math.abs(homeMakeSbChance - makeSbChance) > marginOfError(homeMakeSbChance, numHomeWins)) ? homeMakeSbChance : makeSbChance,
+				homeWinSuperBowl: (Math.abs(homeWinSbChance - winSbChance) > marginOfError(homeWinSbChance, numHomeWins)) ? homeWinSbChance : winSbChance,
+				awaySeed7: (Math.abs(awaySeed7Chance - seed7Chance) > marginOfError(awaySeed7Chance, numAwayWins)) ? awaySeed7Chance : seed7Chance,
+				awaySeed6: (Math.abs(awaySeed6Chance - seed6Chance) > marginOfError(awaySeed6Chance, numAwayWins)) ? awaySeed6Chance : seed6Chance,
+				awaySeed5: (Math.abs(awaySeed5Chance - seed5Chance) > marginOfError(awaySeed5Chance, numAwayWins)) ? awaySeed5Chance : seed5Chance,
+				awaySeed4: (Math.abs(awaySeed4Chance - seed4Chance) > marginOfError(awaySeed4Chance, numAwayWins)) ? awaySeed4Chance : seed4Chance,
+				awaySeed3: (Math.abs(awaySeed3Chance - seed3Chance) > marginOfError(awaySeed3Chance, numAwayWins)) ? awaySeed3Chance : seed3Chance,
+				awaySeed2: (Math.abs(awaySeed2Chance - seed2Chance) > marginOfError(awaySeed2Chance, numAwayWins)) ? awaySeed2Chance : seed2Chance,
+				awaySeed1: (Math.abs(awaySeed1Chance - seed1Chance) > marginOfError(awaySeed1Chance, numAwayWins)) ? awaySeed1Chance : seed1Chance,
+				awayHostWildCard: (Math.abs(awayHostWcChance - hostWcChance) > marginOfError(awayHostWcChance, numAwayWins)) ? awayHostWcChance : hostWcChance,
+				awayHostDivision: (Math.abs(awayHostDivChance - hostDivChance) > marginOfError(awayHostDivChance, numAwayWins)) ? awayHostDivChance : hostDivChance,
+				awayHostConference: (Math.abs(awayHostConfChance - hostConfChance) > marginOfError(awayHostConfChance, numAwayWins)) ? awayHostConfChance : hostConfChance,
+				awayMakeDivision: (Math.abs(awayMakeDivChance - makeDivChance) > marginOfError(awayMakeDivChance, numAwayWins)) ? awayMakeDivChance : makeDivChance,
+				awayMakeConference: (Math.abs(awayMakeConfChance - makeConfChance) > marginOfError(awayMakeConfChance, numAwayWins)) ? awayMakeConfChance : makeConfChance,
+				awayMakeSuperBowl: (Math.abs(awayMakeSbChance - makeSbChance) > marginOfError(awayMakeSbChance, numAwayWins)) ? awayMakeSbChance : makeSbChance,
+				awayWinSuperBowl: (Math.abs(awayWinSbChance - winSbChance) > marginOfError(awayWinSbChance, numAwayWins)) ? awayWinSbChance : winSbChance,
 			});
 		}
 	}
