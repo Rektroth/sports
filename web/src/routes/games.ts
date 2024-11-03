@@ -67,10 +67,12 @@ export default function GameRoutes (
 		const gameViews = games.map(g => new GameView(g.id, g.neutralSite, g.seasonType, g.startDateTime, g.homeTeam, g.awayTeam, g.homeScore, g.awayScore));
 
 		for (let i = 0; i < gameViews.length; i++) {
+			const game = gameViews[i];
+
 			const homeTeamElo = await eloRepo.findOne({
 				where: {
-					teamId: gameViews[i].homeTeam?.id,
-					date: LessThan(gameViews[i].date)
+					teamId: game.homeTeam?.id,
+					date: LessThan(game.date)
 				},
 				order: {
 					date: 'DESC'
@@ -79,8 +81,8 @@ export default function GameRoutes (
 	
 			const awayTeamElo = await eloRepo.findOne({
 				where: {
-					teamId: gameViews[i].awayTeam?.id,
-					date: LessThan(gameViews[i].date)
+					teamId: game.awayTeam?.id,
+					date: LessThan(game.date)
 				},
 				order: {
 					date: 'DESC'
@@ -89,11 +91,11 @@ export default function GameRoutes (
 	
 			const homeTeamLastGameDate = (await gameRepo.findOne({
 				where: [{
-					homeTeamId: gameViews[i].homeTeam?.id,
-					startDateTime: LessThan(gameViews[i].date)
+					homeTeamId: game.homeTeam?.id,
+					startDateTime: LessThan(game.date)
 				}, {
-					awayTeamId: gameViews[i].awayTeam?.id,
-					startDateTime: LessThan(gameViews[i].date)
+					awayTeamId: game.homeTeam?.id,
+					startDateTime: LessThan(game.date)
 				}],
 				order: {
 					startDateTime: 'DESC'
@@ -102,11 +104,11 @@ export default function GameRoutes (
 	
 			const awayTeamLastGameDate = (await gameRepo.findOne({
 				where: [{
-					homeTeamId: gameViews[i].homeTeam?.id,
-					startDateTime: LessThan(gameViews[i].date)
+					homeTeamId: game.awayTeam?.id,
+					startDateTime: LessThan(game.date)
 				}, {
-					awayTeamId: gameViews[i].awayTeam?.id,
-					startDateTime: LessThan(gameViews[i].date)
+					awayTeamId: game.awayTeam?.id,
+					startDateTime: LessThan(game.date)
 				}],
 				order: {
 					startDateTime: 'DESC'
@@ -117,31 +119,31 @@ export default function GameRoutes (
 			let awayBreak = 7;
 	
 			if (homeTeamLastGameDate !== null && homeTeamLastGameDate !== undefined) {
-				homeBreak = (gameViews[i].date.getTime() - homeTeamLastGameDate) / 1000 / 60 / 60 / 24;
+				homeBreak = (game.date.getTime() - homeTeamLastGameDate) / 1000 / 60 / 60 / 24;
 			}
 	
 			if (awayTeamLastGameDate !== null && awayTeamLastGameDate !== undefined) {
-				awayBreak = (gameViews[i].date.getTime() - awayTeamLastGameDate) / 1000 / 60 / 60 / 24;
+				awayBreak = (game.date.getTime() - awayTeamLastGameDate) / 1000 / 60 / 60 / 24;
 			}
 	
 			const homeElo = homeTeamElo?.eloScore ?? 1500;
 			const awayElo = awayTeamElo?.eloScore ?? 1500;
 	
-			gameViews[i].homeChance = chance(
+			game.homeChance = chance(
 				homeElo,
 				awayElo,
-				!gameViews[i].neutralSite,
+				!game.neutralSite,
 				false,
-				gameViews[i].seasonType,
+				game.seasonType,
 				homeBreak,
 				awayBreak);
 	
-			gameViews[i].awayChance = chance(
+			game.awayChance = chance(
 				awayElo,
 				homeElo,
 				false,
-				!gameViews[i].neutralSite,
-				gameViews[i].seasonType,
+				!game.neutralSite,
+				game.seasonType,
 				awayBreak,
 				homeBreak);
 		}
