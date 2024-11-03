@@ -12,8 +12,87 @@ import {
 	TeamChancesByGame,
 	SeasonType
 } from '@rektroth/sports-entities';
-import SimTeam from './util/simteam';
+import printProgress from './util/printprogress';
 import nflSort from './util/nflsort';
+import SimTeam from './util/simteam';
+
+class TeamAppearances {
+	teamId: number;
+	numSeed7: number = 0;
+	numSeed6: number = 0;
+	numSeed5: number = 0;
+	numSeed4: number = 0;
+	numSeed3: number = 0;
+	numSeed2: number = 0;
+	numSeed1: number = 0;
+	numHostWc: number = 0;
+	numHostDiv: number = 0;
+	numHostConf: number = 0;
+	numMakeDiv: number = 0;
+	numMakeConf: number = 0;
+	numMakeSb: number = 0;
+	numWinSb: number = 0;
+	gameAppearances: GameAppearances[] = [];
+
+	constructor (id: number, gameIds: number[]) {
+		this.teamId = id;
+		this.gameAppearances = gameIds.map(gi => new GameAppearances(gi));
+	}
+}
+
+class GameAppearances {
+	gameId: number;
+	numSeed7Home: number = 0;
+	numSeed6Home: number = 0;
+	numSeed5Home: number = 0;
+	numSeed4Home: number = 0;
+	numSeed3Home: number = 0;
+	numSeed2Home: number = 0;
+	numSeed1Home: number = 0;
+	numHostWcHome: number = 0;
+	numHostDivHome: number = 0;
+	numHostConfHome: number = 0;
+	numMakeDivHome: number = 0;
+	numMakeConfHome: number = 0;
+	numMakeSbHome: number = 0;
+	numWinSbHome: number = 0;
+	numSeed7Away: number = 0;
+	numSeed6Away: number = 0;
+	numSeed5Away: number = 0;
+	numSeed4Away: number = 0;
+	numSeed3Away: number = 0;
+	numSeed2Away: number = 0;
+	numSeed1Away: number = 0;
+	numHostWcAway: number = 0;
+	numHostDivAway: number = 0;
+	numHostConfAway: number = 0;
+	numMakeDivAway: number = 0;
+	numMakeConfAway: number = 0;
+	numMakeSbAway: number = 0;
+	numWinSbAway: number = 0;
+	homeWins: number = 0;
+	awayWins: number = 0;
+
+	constructor (id: number) {
+		this.gameId = id;
+	}
+}
+
+class SimGame {
+	gameId: number;
+	gameOutcome: GameOutcome;
+
+	constructor (id: number, outcome: GameOutcome) {
+		this.gameId = id;
+		this.gameOutcome = outcome;
+	}
+}
+
+enum GameOutcome {
+	HOME,
+	AWAY,
+	TIE
+}
 
 dotenv.config();
 
@@ -1113,90 +1192,6 @@ async function analysis(week: number): Promise<void> {
 			});
 		}
 	}
-}
-
-class TeamAppearances {
-	teamId: number;
-	numSeed7: number = 0;
-	numSeed6: number = 0;
-	numSeed5: number = 0;
-	numSeed4: number = 0;
-	numSeed3: number = 0;
-	numSeed2: number = 0;
-	numSeed1: number = 0;
-	numHostWc: number = 0;
-	numHostDiv: number = 0;
-	numHostConf: number = 0;
-	numMakeDiv: number = 0;
-	numMakeConf: number = 0;
-	numMakeSb: number = 0;
-	numWinSb: number = 0;
-	gameAppearances: GameAppearances[] = [];
-
-	constructor (id: number, gameIds: number[]) {
-		this.teamId = id;
-		this.gameAppearances = gameIds.map(gi => new GameAppearances(gi));
-	}
-}
-
-class GameAppearances {
-	gameId: number;
-	numSeed7Home: number = 0;
-	numSeed6Home: number = 0;
-	numSeed5Home: number = 0;
-	numSeed4Home: number = 0;
-	numSeed3Home: number = 0;
-	numSeed2Home: number = 0;
-	numSeed1Home: number = 0;
-	numHostWcHome: number = 0;
-	numHostDivHome: number = 0;
-	numHostConfHome: number = 0;
-	numMakeDivHome: number = 0;
-	numMakeConfHome: number = 0;
-	numMakeSbHome: number = 0;
-	numWinSbHome: number = 0;
-	numSeed7Away: number = 0;
-	numSeed6Away: number = 0;
-	numSeed5Away: number = 0;
-	numSeed4Away: number = 0;
-	numSeed3Away: number = 0;
-	numSeed2Away: number = 0;
-	numSeed1Away: number = 0;
-	numHostWcAway: number = 0;
-	numHostDivAway: number = 0;
-	numHostConfAway: number = 0;
-	numMakeDivAway: number = 0;
-	numMakeConfAway: number = 0;
-	numMakeSbAway: number = 0;
-	numWinSbAway: number = 0;
-	homeWins: number = 0;
-	awayWins: number = 0;
-
-	constructor (id: number) {
-		this.gameId = id;
-	}
-}
-
-class SimGame {
-	gameId: number;
-	gameOutcome: GameOutcome;
-
-	constructor (id: number, outcome: GameOutcome) {
-		this.gameId = id;
-		this.gameOutcome = outcome;
-	}
-}
-
-enum GameOutcome {
-	HOME,
-	AWAY,
-	TIE
-}
-
-function printProgress (progress: string): void {
-	process.stdout.clearLine(0);
-	process.stdout.cursorTo(0);
-	process.stdout.write(progress.substring(0, 5) + '%');
 }
 
 function marginOfError (p: number, n: number): number {
