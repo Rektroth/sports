@@ -3,17 +3,16 @@ import dotenv from 'dotenv';
 import { IsNull, LessThan, MoreThan, Or } from 'typeorm';
 import { chance, newElo, Outcome } from '@rektroth/elo';
 import {
-	SportsDataSource,
 	Conference,
-	Division,
-	Team,
 	Game,
+	SeasonType,
+	SportsDataSource,
+	Team,
 	TeamChances,
-	TeamChancesByGame,
-	SeasonType
+	TeamChancesByGame
 } from '@rektroth/sports-entities';
-import printProgress from './util/printprogress';
 import nflSort from './util/nflsort';
+import printProgress from './util/printprogress';
 import SimTeam from './util/simteam';
 
 class TeamAppearances {
@@ -108,7 +107,6 @@ const CONFIDENCE_INTERVAL = isNaN(Number(process.env.CONFIDENCE_INTERVAL)) ? 2.5
 
 const simDataSource = SportsDataSource(SCHEMA, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
 const conferenceRepo = simDataSource.getRepository(Conference);
-const divisionRepo = simDataSource.getRepository(Division);
 const teamRepo = simDataSource.getRepository(Team);
 const gameRepo = simDataSource.getRepository(Game);
 const teamChancesRepo = simDataSource.getRepository(TeamChances);
@@ -171,11 +169,10 @@ export default async function main (): Promise<void> {
 
 	appearances = teams.map(t => new TeamAppearances(t.id, soonGameIds));
 
-	const divisions = await divisionRepo.find();
 	const conferences = await conferenceRepo.find();
 
 	for (let i = 0; i < SIMS; i++) {
-		await simulate(games, teams, divisions, conferences, soonGameIds);
+		await simulate(games, teams, conferences, soonGameIds);
 		printProgress(String(((i + 1) / SIMS) * 100));
 	}
 
@@ -203,7 +200,6 @@ export default async function main (): Promise<void> {
 async function simulate (
 	games: Game[],
 	teamEntities: Team[],
-	divisions: Division[],
 	conferences: Conference[],
 	soonGameIds: number[]
 ): Promise<void> {
