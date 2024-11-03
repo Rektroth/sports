@@ -15,26 +15,6 @@ class EspnScoreboard {
 	events: EspnEvent[];
 }
 
-class EspnSummary {
-	header: {
-		id: string;
-		competitions: EspnCompetition[];
-		season: EspnSeason;
-		week: number | undefined;
-	};
-
-	predictor?: {
-		homeTeam: {
-			id: string;
-			gameProjection: string;
-		};
-		awayTeam: {
-			id: string;
-			gameProjection: string;
-		};
-	};
-}
-
 class EspnEvent {
 	id: string;
 	date: string;
@@ -43,6 +23,7 @@ class EspnEvent {
 		number: number;
 	};
 	competitions: EspnCompetition[];
+	shortName: string;
 	status: {
 		type: {
 			id: string;
@@ -72,7 +53,6 @@ class EspnCompetitor {
 dotenv.config();
 
 const SCOREBOARD_ENDPOINT = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
-const SUMMARY_ENDPOINT = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary';
 const FIRST_SEASON = 2002;
 const LAST_SEASON = isNaN(Number(process.env.CURRENT_SEASON)) ? 2023 : Number(process.env.CURRENT_SEASON);
 const PRE_SEASON = 1;
@@ -101,7 +81,7 @@ async function main (): Promise<void> {
 
 	console.log(`Updating regular/post-season NFL game data for seasons ${FIRST_SEASON} to ${LAST_SEASON}...`);
 
-	const events: EspnEvent[] = [];
+	let events: EspnEvent[] = [];
 	const teamIds = (await teamRepo.find()).map(t => t.id);
 	const existingGameIds = (await gameRepo.find()).map(g => Number(g.id));
 	const existingUnplayedGameIds = (await gameRepo.findBy({ homeScore: IsNull() })).map((g) => Number(g.id));
@@ -110,7 +90,7 @@ async function main (): Promise<void> {
 		console.log(`Getting games from ${i} season...`);
 
 		const scoreboard = await (await fetch(SCOREBOARD_ENDPOINT + '?limit=500&dates=' + i)).json() as EspnScoreboard;
-		events.concat(scoreboard.events);
+		events = events.concat(scoreboard.events);
 	}
 
 	const completedGames = events.filter(e =>
@@ -134,13 +114,16 @@ async function main (): Promise<void> {
 
 	// update games that recently completed
 	for (let i = 0; i < recentlyCompletedGames.length; i++) {
-		console.log(`Updating completed game ${i + 1} of ${recentlyCompletedGames.length}...`);
+		const game = recentlyCompletedGames[i];
+		const shortName = game.shortName;
 
-		const game = recentlyCompletedGames[i].competitions[0];
-		const id = Number(game.id);
-		const startDateTime = new Date(game.date);
-		const homeScore = Number(game.competitors.find((c) => c.homeAway === HOME)?.score);
-		const awayScore = Number(game.competitors.find((c) => c.homeAway === AWAY)?.score);
+		const competition = game.competitions[0];
+		const id = Number(competition.id);
+		const startDateTime = new Date(competition.date);
+		const homeScore = Number(competition.competitors.find((c) => c.homeAway === HOME)?.score);
+		const awayScore = Number(competition.competitors.find((c) => c.homeAway === AWAY)?.score);
+
+		console.log(`Updating ${shortName}, ${startDateTime.getFullYear()} (COMPLETED)...`);
 
 		if (isNaN(homeScore) || isNaN(awayScore)) {
 			await gameRepo.save({
@@ -159,23 +142,26 @@ async function main (): Promise<void> {
 
 	// insert new completed games
 	for (let i = 0; i < newCompletedGames.length; i++) {
-		console.log(`Inserting completed game ${i + 1} of ${newCompletedGames.length}...`);
-
 		const game = newCompletedGames[i];
-		const id = Number(game.id);
-		const startDateTime = new Date(game.date);
-		const neutralSite = game.competitions[0].neutralSite;
 		const season = game.season.year;
 		const week = game.week?.number ?? 0;
+		const shortName = game.shortName;
 		const seasonType = game.season.type === PRE_SEASON
 			? SeasonType.PRE
 			: game.season.type === POST_SEASON
 				? SeasonType.POST
 				: SeasonType.REGULAR;
-		const homeTeamId = Number(game.competitions[0].competitors.find(c => c.homeAway === HOME)?.id);
-		const awayTeamId = Number(game.competitions[0].competitors.find(c => c.homeAway === AWAY)?.id);
-		const homeScore = Number(game.competitions[0].competitors.find(c => c.homeAway === HOME)?.score);
-		const awayScore = Number(game.competitions[0].competitors.find(c => c.homeAway === AWAY)?.score);
+
+		const competition = game.competitions[0];
+		const id = Number(competition.id);
+		const startDateTime = new Date(competition.date);
+		const neutralSite = competition.neutralSite;
+		const homeTeamId = Number(competition.competitors.find(c => c.homeAway === HOME)?.id);
+		const awayTeamId = Number(competition.competitors.find(c => c.homeAway === AWAY)?.id);
+		const homeScore = Number(competition.competitors.find(c => c.homeAway === HOME)?.score);
+		const awayScore = Number(competition.competitors.find(c => c.homeAway === AWAY)?.score);
+
+		console.log(`Inserting ${shortName}, ${startDateTime.getFullYear()} (COMPLETED)...`);
 
 		await gameRepo.insert({
 			id,
@@ -193,31 +179,38 @@ async function main (): Promise<void> {
 
 	// update unplayed games
 	for (let i = 0; i < unfinishedGames.length; i++) {
-		console.log(`Updating unplayed game ${i + 1} of ${unfinishedGames.length}...`);
+		const game = unfinishedGames[i];
+		const shortName = game.shortName;
 
-		const game = await (await fetch(SUMMARY_ENDPOINT + '?event=' + unfinishedGames[i].id)).json() as EspnSummary;
-		const id = Number(game.header.id);
-		const startDateTime = new Date(game.header.competitions[0].date);
+		const competition = game.competitions[0];
+		const id = Number(competition.id);
+		const startDateTime = new Date(competition.date);
+
+		console.log(`Updating ${shortName}, ${startDateTime.getFullYear()}...`);
+
 		await gameRepo.save({ id, startDateTime });
 	}
 
 	// insert new unplayed games
 	for (let i = 0; i < newUnfinishedGames.length; i++) {
-		console.log(`Inserting unplayed game ${i + 1} of ${newUnfinishedGames.length}...`);
+		const game = newUnfinishedGames[i];
+		const shortName = game.shortName;
 
-		const game = await (await fetch(SUMMARY_ENDPOINT + '?event=' + newUnfinishedGames[i].id)).json() as EspnSummary;
-		const id = Number(game.header.id);
-		const startDateTime = new Date(game.header.competitions[0].date);
-		const neutralSite = game.header.competitions[0].neutralSite;
-		const season = game.header.season.year;
-		const week = game.header.week ?? 0;
-		const seasonType = game.header.season.type === PRE_SEASON
+		const competition = game.competitions[0];
+		const id = Number(competition.id);
+		const startDateTime = new Date(competition.date);
+		const neutralSite = competition.neutralSite;
+		const season = game.season.year;
+		const week = game.week?.number ?? 0;
+		const seasonType = game.season.type === PRE_SEASON
 			? SeasonType.PRE
-			: game.header.season.type === POST_SEASON
+			: game.season.type === POST_SEASON
 				? SeasonType.POST
 				: SeasonType.REGULAR;
-		const homeTeamId = Number(game.header.competitions[0].competitors.find((c) => c.homeAway === HOME)?.id);
-		const awayTeamId = Number(game.header.competitions[0].competitors.find((c) => c.homeAway === AWAY)?.id);
+		const homeTeamId = Number(game.competitions[0].competitors.find((c) => c.homeAway === HOME)?.id);
+		const awayTeamId = Number(game.competitions[0].competitors.find((c) => c.homeAway === AWAY)?.id);
+
+		console.log(`Inserting ${shortName}, ${startDateTime.getFullYear()}...`);
 
 		await gameRepo.insert({
 			id,
@@ -233,8 +226,14 @@ async function main (): Promise<void> {
 
 	// delete invalid games
 	for (let i = 0; i < invalidGames.length; i++) {
-		console.log(`Deleting game ${i + 1} of ${invalidGames.length}...`);
-		await gameRepo.delete({ id: Number(invalidGames[i].id) });
+		const game = invalidGames[i];
+		const id = Number(game.id);
+		const shortName = game.shortName;
+		const date = new Date(game.date);
+
+		console.log(`Deleting ${shortName}, ${date.getFullYear()}...`);
+
+		await gameRepo.delete({ id });
 	}
 
 	console.log('Game data update completed!');
