@@ -1,7 +1,13 @@
 import type Team from './simteam';
 
-export default function nflSort (teams: Team[], divIds: number[]): Team[] {
+/**
+ * Sorts a list of teams according to the NFL's tie-breaking procedures for playoff seeding.
+ * @param teams The teams to be sorted.
+ * @returns The teams sorted.
+ */
+export default function nflSort (teams: Team[]): Team[] {
 	let newTeams: Team[] = [];
+	const divIds = [...new Set(teams.map(t => t.divisionId))]; // [...new Set( )] removes duplicate values
 
 	for (let i = 0; i < divIds.length; i++) {
 		const divTeams = teams

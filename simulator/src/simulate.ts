@@ -425,7 +425,7 @@ async function simulate (
 
 	for (let i = 0; i < conferences.length; i++) {
 		let confTeams = teams.filter(t => t.conferenceId === conferences[i].id);
-		confTeams = nflSort(confTeams, divisions.filter(d => d.conferenceId === conferences[i].id).map(d => d.id));
+		confTeams = nflSort(confTeams);
 		
 		for (let j = 0; j <= 6; j++) {
 			const appearance = appearances.find(ta => ta.teamId === confTeams[j].id);
