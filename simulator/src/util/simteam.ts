@@ -1,120 +1,173 @@
 import { type Team } from '@rektroth/sports-entities';
 
+/** Represents an NFL team that is being simulated. */
 export default class SimTeam {
+	/**
+	 * The team's ID.
+	 */
 	id: number;
+	/**
+	 * The ID of the team's division.
+	 */
 	divisionId: number;
+	/**
+	 * The ID of the team's conference.
+	 */
 	conferenceId: number;
-	name: string;
-	winOpps: number[];
-	lossOpps: number[];
-	tieOpps: number[];
-	divRank: number;
+	/**
+	 * List of opponents beaten.
+	 */
+	winOpponents: number[];
+	/**
+	 * List of opponents lost to.
+	 */
+	lossOpponents: number[];
+	/**
+	 * List of opponents tied with.
+	 */
+	tieOpponents: number[];
+	/**
+	 * The team's elo rating.
+	 */
 	elo: number;
+	/**
+	 * The date of the team's last game.
+	 */
 	lastGame: Date;
+	/**
+	 * The team's seed in the conference.
+	 * This property is for sorting.
+	 */
 	seed: number;
+	/**
+	 * The team's rank in their division.
+	 * This property is for sorting.
+	 */
+	divisionRank: number;
 
+	/**
+	 * Creates a new instance of SimTeam.
+	 * @param team - The team entity being simulated.
+	 */
 	constructor (team: Team) {
 		this.id = team.id;
 		this.divisionId = team.divisionId;
 		this.conferenceId = team.division?.conferenceId ?? 0;
-		this.name = team.name;
-		this.winOpps = [];
-		this.lossOpps = [];
-		this.tieOpps = [];
+		this.winOpponents = [];
+		this.lossOpponents = [];
+		this.tieOpponents = [];
 		this.elo = team.eloScores !== undefined ? team.eloScores[0].eloScore : 1500;
 		this.seed = 0;
 	}
 
+	/**
+	 * Adds a team to the list of opponents beaten.
+	 * @param teamId The ID of the opponent beaten.
+	 */
 	winGame (teamId: number): void {
-		this.winOpps.push(teamId);
+		this.winOpponents.push(teamId);
 	}
 
+	/**
+	 * Adds a team to the list of opponents lost to.
+	 * @param teamId The ID of the opponent lost to.
+	 */
 	loseGame (teamId: number): void {
-		this.lossOpps.push(teamId);
+		this.lossOpponents.push(teamId);
 	}
 
+	/**
+	 * Adds a team to the list of opponents tied with.
+	 * @param teamId The ID of the opponent tied with.
+	 */
 	tieGame (teamId: number): void {
-		this.tieOpps.push(teamId);
+		this.tieOpponents.push(teamId);
 	}
 
-	getRecord (): string {
-		let a = this.winOpps.length + '-' + this.lossOpps.length;
-		a = this.tieOpps.length > 0 ? a + '-' + this.lossOpps.length : a;
-		return a;
-	}
+	/**
+	 * Gets the team's win percentage.
+	 * @returns The team's win percentage.
+	 */
+	getWinPercentage (): number {
+		const totalGames = this.winOpponents.length + this.lossOpponents.length + this.tieOpponents.length;
 
-	getRecordS (teams: SimTeam[]): string {
-		const wins = this.winOpps.filter((t1) => teams.filter((t2) => t1 === t2.id).length > 0).length;
-		const losses = this.lossOpps.filter((t1) => teams.filter((t2) => t1 === t2.id).length > 0).length;
-		return wins + '-' + losses;
-	}
-
-	getPercentage (): number {
-		if (this.winOpps.length + this.lossOpps.length + this.tieOpps.length > 0) {
-			return (this.winOpps.length + (0.5 * this.tieOpps.length)) / (this.winOpps.length + this.lossOpps.length + this.tieOpps.length);
+		if (totalGames === 0) {
+			return 0;
 		}
 
-		return 0;
+		const wins = this.winOpponents.length;
+		const ties = this.tieOpponents.length;
+		return (wins + (0.5 * ties)) / totalGames;
 	}
 
-	getPercentageS (teamIds: number[]): number {
-		const wins = this.winOpps.filter((t1) => teamIds.filter((t2) => t1 === t2).length > 0).length;
-		const losses = this.lossOpps.filter((t1) => teamIds.filter((t2) => t1 === t2).length > 0).length;
-		const ties = this.tieOpps.filter(t1 => teamIds.filter(t2 => t1 === t2).length > 0).length;
+	/**
+	 * Gets the team's win percentage against a specified list of opponents.
+	 * @param teamIds The IDs of the opponents to get the team's win percentage against.
+	 * @returns The team's win percentage against the specified opponents.
+	 */
+	getWinPercentageAgainstOpponents (teamIds: number[]): number {
+		const wins = this.winOpponents.filter((t1) => teamIds.filter((t2) => t1 === t2).length > 0).length;
+		const losses = this.lossOpponents.filter((t1) => teamIds.filter((t2) => t1 === t2).length > 0).length;
+		const ties = this.tieOpponents.filter(t1 => teamIds.filter(t2 => t1 === t2).length > 0).length;
+		const totalGames = wins + losses + ties;
 
-		if (wins + losses + ties > 0) {
-			return (wins + (0.5 * ties)) / (wins + losses + ties);
+		if (totalGames === 0) {
+			return 0;
 		}
 
-		return 0;
+		return (wins + (0.5 * ties)) / totalGames;
 	}
 
+	/**
+	 * Gets the team's strength of victory.
+	 * @param teams All the teams in the league.
+	 * @returns The team's strength of victory.
+	 */
 	getStrengthOfVictory (teams: SimTeam[]): number {
-		if (this.winOpps.length === 0 && this.tieOpps.length === 0) {
+		const wins = this.winOpponents.length;
+		const ties = this.tieOpponents.length;
+
+		if (wins === 0 && ties === 0) {
 			return 0;
 		}
 
 		let sum = 0;
 
-		for (let i = 0; i < this.winOpps.length; i++) {
-			sum += teams.find(t => t.id === this.winOpps[i])?.getPercentage() ?? 0;
+		for (let i = 0; i < wins; i++) {
+			sum += teams.find(t => t.id === this.winOpponents[i])?.getWinPercentage() ?? 0;
 		}
 
-		for (let i = 0; i < this.tieOpps.length; i++) {
-			const x = teams.find(t => t.id === this.tieOpps[i])?.getPercentage();
-
-			if (x !== undefined) {
-				sum += 0.5 * x;
-			}
+		for (let i = 0; i < ties; i++) {
+			sum += 0.5 * (teams.find(t => t.id === this.tieOpponents[i])?.getWinPercentage() ?? 0);
 		}
 
-		return sum / (this.winOpps.length + (0.5 * this.tieOpps.length));
+		return sum / (wins + (0.5 * ties));
 	}
 
+	/**
+	 * Gets the team's strength of schedule.
+	 * @param teams All the teams in the league.
+	 * @returns The team's strength of schedule.
+	 */
 	getStrengthOfSchedule (teams: SimTeam[]): number {
+		const wins = this.winOpponents.length;
+		const losses = this.lossOpponents.length;
+		const ties = this.tieOpponents.length;
+		const totalGames = wins + losses + ties;
 		let sum = 0;
 
-		for (let i = 0; i < this.winOpps.length; i++) {
-			sum += teams.find(t => t.id === this.winOpps[i])?.getPercentage() ?? 0;
+		for (let i = 0; i < wins; i++) {
+			sum += teams.find(t => t.id === this.winOpponents[i])?.getWinPercentage() ?? 0;
 		}
 
-		for (let i = 0; i < this.lossOpps.length; i++) {
-			sum += teams.find(t => t.id === this.lossOpps[i])?.getPercentage() ?? 0;
+		for (let i = 0; i < losses; i++) {
+			sum += teams.find(t => t.id === this.lossOpponents[i])?.getWinPercentage() ?? 0;
 		}
 
-		for (let i = 0; i < this.tieOpps.length; i++) {
-			sum += teams.find(t => t.id === this.tieOpps[i])?.getPercentage() ?? 0;
+		for (let i = 0; i < ties; i++) {
+			sum += teams.find(t => t.id === this.tieOpponents[i])?.getWinPercentage() ?? 0;
 		}
 
-		return sum / (this.winOpps.length + this.lossOpps.length + this.tieOpps.length);
-	}
-
-	getAllStats (teams: SimTeam[]): string {
-		const winLose = this.getRecord().padEnd(6);
-		const div = this.getRecordS(teams.filter((t) => t.divisionId === this.divisionId)).padEnd(4);
-		const conf = this.getRecordS(teams.filter((t) => t.conferenceId === this.conferenceId)).padEnd(4);
-		const sov = String(Math.round(this.getStrengthOfVictory(teams) * 1000) / 10).padEnd(4);
-		const sos = Math.round(this.getStrengthOfSchedule(teams) * 1000) / 10;
-		return winLose + ' | ' + div + ' | ' + conf + ' | ' + sov + ' | ' + sos;
+		return sum / totalGames;
 	}
 }
