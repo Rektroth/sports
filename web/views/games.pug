@@ -3,10 +3,31 @@ include mixins/pcttd
 block content
     table.chances
         tr
+            td.date
+                if prevWeek === week && prevType === type
+                    div
+                else
+                    a(href='?week=' + prevWeek +'&type=' + prevType)= '< Prev Week'
+            td.date
+                if type == 'pre'
+                    b= 'Preseason Week ' + week
+                else if type == 'post'
+                    b= 'Postseason Week ' + week
+                else
+                    b= 'Week ' + week
+            td.date
+                if nextWeek === week && nextType === type
+                    div
+                else
+                    a(href='?week=' + nextWeek +'&type=' + nextType)= 'Next Week >'
+    table.chances
+        tr
             td.head= 'Chance'
             td.head= 'Away Team'
             td.head= 'Away Score'
+            td.head
             td.head= 'Date'
+            td.head
             td.head= 'Home Score'
             td.head= 'Home Team'
             td.head= 'Chance'
@@ -17,8 +38,20 @@ block content
                     a(href='/teams/' + game.awayTeam.id)
                         img(src='../img/' + game.awayTeam.abbreviation.toLowerCase() + '.svg')
                 td.rec(style='background-color:' + (game.awayScore > game.homeScore ? '#7f7fff' : '#ffffff'))= game.awayScore
+                if game.awayScore > game.homeScore && game.awayChance > game.homeChance
+                    td.rec(style='background-color:#7f7fff')= '✔️'
+                else if game.awayScore > game.homeScore && game.awayChance < game.homeChance
+                    td.rec(style='background-color:#7f7fff')= '❌'
+                else
+                    td.rec
                 td.date
                     a(href='../games/' + game.id)= String(game.date).substring(0, 24)
+                if game.awayScore < game.homeScore && game.awayChance < game.homeChance
+                    td.rec(style='background-color:#7f7fff')= '✔️'
+                else if game.awayScore < game.homeScore && game.awayChance > game.homeChance
+                    td.rec(style='background-color:#7f7fff')= '❌'
+                else
+                    td.rec
                 td.rec(style='background-color:' + (game.awayScore < game.homeScore ? '#7f7fff' : '#ffffff'))= game.homeScore
                 td.team(style='background-color:' + game.homeTeam.color1)
                     a(href='/teams/' + game.homeTeam.id)

@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 import express, { type Express, type Request, type Response } from 'express';
-import { LessThan, type Repository } from 'typeorm';
+import { IsNull, LessThan, Not, type Repository } from 'typeorm';
 import { chance } from '@rektroth/elo';
 import {
 	type Game,
-	type SeasonType,
+	SeasonType,
 	type Team,
 	type TeamChancesByGame,
 	type TeamElo
@@ -51,13 +51,121 @@ export default function GameRoutes (
 	eloRepo: Repository<TeamElo>
 ): Express {
 	app.get('/', async (req: Request, res: Response) => {
+		let week = 1;
+		let type = SeasonType.REGULAR;
+
+		if (isNaN(Number(req.query.week)) || (req.query.type as SeasonType) === undefined) {
+			const nextGame = (await gameRepo.findOne({
+				where: {
+					season: 2024,
+					homeScore: IsNull(),
+					awayScore: IsNull()
+				},
+				order: {
+					startDateTime: 'ASC'
+				}
+			}));
+
+			if (isNaN(Number(req.query.week))) {
+				week = nextGame?.week ?? week;
+			} else {
+				week = Number(req.query.week);
+			}
+
+			if ((req.query.type as SeasonType) === undefined) {
+				type = nextGame?.seasonType ?? type;
+			} else {
+				type = req.query.type as SeasonType;
+			}
+		} else {
+			if (!isNaN(Number(req.query.week))) {
+				week = Number(req.query.week);
+			}
+
+			if ((req.query.type as SeasonType) !== undefined) {
+				type = req.query.type as SeasonType;
+			}
+		}
+
+		const firstPreSeasonGame = await gameRepo.findOne({
+			where: {
+				season: 2024,
+				seasonType: SeasonType.PRE
+			},
+			order: {
+				startDateTime: 'ASC'
+			}
+		});
+
+		const lastPreSeasonGame = await gameRepo.findOne({
+			where: {
+				season: 2024,
+				seasonType: SeasonType.PRE
+			},
+			order: {
+				startDateTime: 'DESC'
+			}
+		});
+
+		const firstRegSeasonGame = await gameRepo.findOne({
+			where: {
+				season: 2024,
+				seasonType: SeasonType.REGULAR
+			},
+			order: {
+				startDateTime: 'ASC'
+			}
+		});
+
+		const lastRegSeasonGame = await gameRepo.findOne({
+			where: {
+				season: 2024,
+				seasonType: SeasonType.REGULAR
+			},
+			order: {
+				startDateTime: 'DESC'
+			}
+		});
+
+		const firstPreSeasonWeek = firstPreSeasonGame?.week ?? 1;
+		const lastPreSeasonWeek = lastPreSeasonGame?.week ?? 4;
+		const firstRegSeasonWeek = firstRegSeasonGame?.week ?? 1;
+		const lastRegSeasonWeek = lastRegSeasonGame?.week ?? 18;
+
+		let prevWeek = week - 1;
+		let nextWeek = week + 1;
+		let prevType = type;
+		let nextType = type;
+
+		if (type === SeasonType.PRE && week === firstPreSeasonWeek) {
+			prevWeek = firstPreSeasonWeek;
+			prevType = SeasonType.PRE;
+		}
+
+		if (type === SeasonType.PRE && week === lastPreSeasonWeek) {
+			nextWeek = firstRegSeasonWeek;
+			nextType = SeasonType.REGULAR;
+		}
+
+		if (type === SeasonType.REGULAR && week === firstRegSeasonWeek) {
+			prevWeek = lastPreSeasonWeek;
+			prevType = SeasonType.PRE;
+		}
+
+		if (type === SeasonType.REGULAR && week === lastRegSeasonWeek) {
+			nextWeek = lastRegSeasonWeek;
+			nextType = SeasonType.REGULAR;
+		}
+
 		const games = await gameRepo.find({
 			relations: {
 				homeTeam: true,
 				awayTeam: true
 			},
 			where: {
-				season: 2024
+				season: 2024,
+				week,
+				seasonType: type
 			},
 			order: {
 				startDateTime: 'ASC'
@@ -148,7 +256,15 @@ export default function GameRoutes (
 				homeBreak);
 		}
 		
-		res.render('games', { games: gameViews });
+		res.render('games', {
+			games: gameViews,
+			week,
+			type,
+			prevWeek,
+			prevType,
+			nextWeek,
+			nextType
+		});
 	});
 
 	app.get('/:id', async (req: Request, res: Response) => {
