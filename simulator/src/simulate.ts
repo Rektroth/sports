@@ -1097,10 +1097,26 @@ async function analysis(week: number): Promise<void> {
 		const hostWcChance = appearances[i].numHostWc / SIMS;
 		const hostDivChance = appearances[i].numHostDiv / SIMS;
 		const hostConfChance = appearances[i].numHostConf / SIMS;
-		const makeDivChance = appearances[i].numMakeDiv / SIMS;
-		const makeConfChance = appearances[i].numMakeConf / SIMS;
-		const makeSbChance = appearances[i].numMakeSb / SIMS;
-		const winSbChance = appearances[i].numWinSb / SIMS;
+		let makeDivChance = appearances[i].numMakeDiv / SIMS;
+		let makeConfChance = appearances[i].numMakeConf / SIMS;
+		let makeSbChance = appearances[i].numMakeSb / SIMS;
+		let winSbChance = appearances[i].numWinSb / SIMS;
+
+		if (makeDivChance === 0 && seed7Chance > 0 && seed7Chance < 1) {
+			makeDivChance = 0.000001;
+		}
+
+		if (makeConfChance === 0 && makeDivChance > 0 && makeDivChance < 1) {
+			makeConfChance = 0.000001;
+		}
+
+		if (makeSbChance === 0 && makeConfChance > 0 && makeConfChance < 1) {
+			makeSbChance = 0.000001;
+		}
+
+		if (winSbChance === 0 && makeSbChance > 0 && makeSbChance < 1) {
+			winSbChance = 0.000001;
+		}
 
 		await teamChancesRepo.save({
 			teamId: appearances[i].teamId,
@@ -1135,10 +1151,10 @@ async function analysis(week: number): Promise<void> {
 			const homeSeed3Chance = gameAppearances[j].numSeed3Home / numHomeWins;
 			const homeSeed2Chance = gameAppearances[j].numSeed2Home / numHomeWins;
 			const homeSeed1Chance = gameAppearances[j].numSeed1Home / numHomeWins;
-			const homeMakeDivChance = gameAppearances[j].numMakeDivHome / numHomeWins;
-			const homeMakeConfChance = gameAppearances[j].numMakeConfHome / numHomeWins;
-			const homeMakeSbChance = gameAppearances[j].numMakeSbHome / numHomeWins;
-			const homeWinSbChance = gameAppearances[j].numWinSbHome / numHomeWins;
+			let homeMakeDivChance = gameAppearances[j].numMakeDivHome / numHomeWins;
+			let homeMakeConfChance = gameAppearances[j].numMakeConfHome / numHomeWins;
+			let homeMakeSbChance = gameAppearances[j].numMakeSbHome / numHomeWins;
+			let homeWinSbChance = gameAppearances[j].numWinSbHome / numHomeWins;
 			const homeHostWcChance = gameAppearances[j].numHostWcHome / numHomeWins;
 			const homeHostDivChance = gameAppearances[j].numHostDivHome / numHomeWins;
 			const homeHostConfChance = gameAppearances[j].numHostConfHome / numHomeWins;
@@ -1149,13 +1165,45 @@ async function analysis(week: number): Promise<void> {
 			const awaySeed3Chance = gameAppearances[j].numSeed3Away / numAwayWins;
 			const awaySeed2Chance = gameAppearances[j].numSeed2Away / numAwayWins;
 			const awaySeed1Chance = gameAppearances[j].numSeed1Away / numAwayWins;
-			const awayMakeDivChance = gameAppearances[j].numMakeDivAway / numAwayWins;
-			const awayMakeConfChance = gameAppearances[j].numMakeConfAway / numAwayWins;
-			const awayMakeSbChance = gameAppearances[j].numMakeSbAway / numAwayWins;
-			const awayWinSbChance = gameAppearances[j].numWinSbAway / numAwayWins;
+			let awayMakeDivChance = gameAppearances[j].numMakeDivAway / numAwayWins;
+			let awayMakeConfChance = gameAppearances[j].numMakeConfAway / numAwayWins;
+			let awayMakeSbChance = gameAppearances[j].numMakeSbAway / numAwayWins;
+			let awayWinSbChance = gameAppearances[j].numWinSbAway / numAwayWins;
 			const awayHostWcChance = gameAppearances[j].numHostWcAway / numAwayWins;
 			const awayHostDivChance = gameAppearances[j].numHostDivAway / numAwayWins;
 			const awayHostConfChance = gameAppearances[j].numHostConfAway / numAwayWins;
+
+			if (homeMakeDivChance === 0 && homeSeed7Chance > 0 && homeSeed7Chance < 1) {
+				homeMakeDivChance = 0.000001;
+			}
+	
+			if (homeMakeConfChance === 0 && homeMakeDivChance > 0 && homeMakeDivChance < 1) {
+				homeMakeConfChance = 0.000001;
+			}
+	
+			if (homeMakeSbChance === 0 && homeMakeConfChance > 0 && homeMakeConfChance < 1) {
+				homeMakeSbChance = 0.000001;
+			}
+	
+			if (homeWinSbChance === 0 && homeMakeSbChance > 0 && homeMakeSbChance < 1) {
+				homeWinSbChance = 0.000001;
+			}
+
+			if (awayMakeDivChance === 0 && awaySeed7Chance > 0 && awaySeed7Chance < 1) {
+				awayMakeDivChance = 0.000001;
+			}
+	
+			if (awayMakeConfChance === 0 && awayMakeDivChance > 0 && awayMakeDivChance < 1) {
+				awayMakeConfChance = 0.000001;
+			}
+	
+			if (awayMakeSbChance === 0 && awayMakeConfChance > 0 && awayMakeConfChance < 1) {
+				awayMakeSbChance = 0.000001;
+			}
+	
+			if (awayWinSbChance === 0 && awayMakeSbChance > 0 && awayMakeSbChance < 1) {
+				awayWinSbChance = 0.000001;
+			}
 
 			await teamChancesByGameRepo.save({
 				gameId: gameAppearances[j].gameId,
