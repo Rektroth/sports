@@ -124,29 +124,27 @@ export default async function main (): Promise<void> {
 		console.log(e);
 	}
 
-	console.log('Deleting existing simulations...');
-
-	const games = await gameRepo.findBy({
-		season: CURRENT_SEASON
-	});
-
-	const nextGameDate = games.filter(g => g.homeScore === null)[0].startDateTime;
-	const nextGameDay = nextGameDate.getDay();
-	const adj = nextGameDay > 3 ? 10 - nextGameDay : 3 - nextGameDay;
-	nextGameDate.setDate(nextGameDate.getDate() + adj);
-	nextGameDate.setHours(8);
-
-	const soonGames = await gameRepo.find({
+	const games = await gameRepo.find({
 		where: {
-			homeScore: IsNull(),
-			startDateTime: LessThan(nextGameDate)
+			season: CURRENT_SEASON
 		},
 		order: {
 			startDateTime: 'ASC'
 		}
 	});
 
-	const soonGameIds = soonGames.map(sg => sg.id);
+	const completedGames = games.filter(g => g.homeScore !== null && g.awayScore !== null);
+	const uncompletedGames = games.filter(g => g.homeScore === null && g.awayScore === null);
+
+	const soonGameIds = (await gameRepo.find({
+		where: {
+			homeScore: IsNull(),
+			week: uncompletedGames[0].week
+		},
+		order: {
+			startDateTime: 'ASC'
+		}
+	})).map(sg => sg.id);
 
 	console.log(`Simulating ${SIMS} seasons...`);
 
@@ -171,8 +169,10 @@ export default async function main (): Promise<void> {
 
 	const conferences = await conferenceRepo.find();
 
+	const simTeams = await complete(completedGames, teams);
+
 	for (let i = 0; i < SIMS; i++) {
-		await simulate(games, teams, conferences, soonGameIds);
+		await simulate(uncompletedGames, simTeams, conferences, soonGameIds);
 		printProgress(String(((i + 1) / SIMS) * 100));
 	}
 
@@ -197,17 +197,53 @@ export default async function main (): Promise<void> {
 	process.exit();
 }
 
+async function complete(games: Game[], teamEntities: Team[]): Promise<SimTeam[]> {
+	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
+	const teams = teamEntities.map(t => new SimTeam(
+		t.id,
+		t.divisionId,
+		t.division?.conferenceId ?? 0
+	));
+
+	for (let i = 0; i < regSeasonGames.length; i++) {
+		const game = regSeasonGames[i];
+
+		if (game.homeScore > game.awayScore) {
+			teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
+			teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
+		} else if (game.homeScore < game.awayScore) {
+			teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
+			teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
+		} else {
+			teams.find(t => t.id === game.homeTeamId)?.tieGame(game.awayTeamId);
+			teams.find(t => t.id === game.awayTeamId)?.tieGame(game.homeTeamId);
+		}
+	}
+
+	return teams;
+}
+
 async function simulate (
 	games: Game[],
-	teamEntities: Team[],
+	preTeams: SimTeam[],
 	conferences: Conference[],
 	soonGameIds: number[]
 ): Promise<void> {
-	games = games.sort((a, b) => a.startDateTime > b.startDateTime ? 1 : a.startDateTime < b.startDateTime ? -1 : 0);
 	const preSeasonGames = games.filter(g => g.seasonType === SeasonType.PRE);
 	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
 	const postSeasonGames = games.filter(g => g.seasonType === SeasonType.POST);
-	const teams = teamEntities.map(t => new SimTeam(t));
+	const teams = preTeams.map(t => new SimTeam(
+		t.id,
+		t.divisionId,
+		t.conferenceId,
+		t.winOpponents,
+		t.lossOpponents,
+		t.tieOpponents,
+		t.elo,
+		t.seed,
+		t.divisionRank,
+		t.lastGame
+	));
 	const soonGames: SimGame[] = [];
 
 	for (let i = 0; i < preSeasonGames.length; i++) {
@@ -348,153 +384,141 @@ async function simulate (
 		const game = regSeasonGames[i];
 		const isSoonGame = soonGameIds.find(sgi => sgi === game.id) !== undefined;
 
-		if (game.homeScore != null) {
-			if (game.homeScore > game.awayScore) {
-				teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
-				teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
-			} else if (game.homeScore < game.awayScore) {
-				teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
-				teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
-			} else {
-				teams.find(t => t.id === game.homeTeamId)?.tieGame(game.awayTeamId);
-				teams.find(t => t.id === game.awayTeamId)?.tieGame(game.homeTeamId);
-			}
-		} else {
-			const homeTeam = teams.find(t => t.id === game.homeTeamId);
-			const awayTeam = teams.find(t => t.id === game.awayTeamId);
-			const homeLastGame = homeTeam?.lastGame ?? null;
-			const awayLastGame = awayTeam?.lastGame ?? null;
-			let homeBreak = homeLastGame !== null
-				? (game.startDateTime.getTime() - homeLastGame.getTime()) / 1000 / 60 / 60 / 24
-				: 7;
-			let awayBreak = awayLastGame !== null
-				? (game.startDateTime.getTime() - awayLastGame.getTime()) / 1000 / 60 / 60 / 24
-				: 7;
-			homeBreak = homeBreak < 20 ? homeBreak : 7;
-			awayBreak = awayBreak < 20 ? awayBreak : 7;
-			const homeElo = homeTeam?.elo ?? 1500;
-			const awayElo = awayTeam?.elo ?? 1500;
-			const homeTeamChance = chance(
-				homeElo,
-				awayElo,
-				!game.neutralSite,
-				false,
-				game.seasonType,
-				homeBreak,
-				awayBreak);
-			const awayTeamChance = chance(
-				awayElo,
-				homeElo,
-				false,
-				!game.neutralSite,
-				game.seasonType,
-				awayBreak,
-				homeBreak);
-			const added: number = Number(homeTeamChance) + Number(awayTeamChance);
-			const r = Math.random();
+		const homeTeam = teams.find(t => t.id === game.homeTeamId);
+		const awayTeam = teams.find(t => t.id === game.awayTeamId);
+		console.log(homeTeam);
+		const homeLastGame = homeTeam?.lastGame ?? null;
+		const awayLastGame = awayTeam?.lastGame ?? null;
+		let homeBreak = homeLastGame !== null
+			? (game.startDateTime.getTime() - homeLastGame.getTime()) / 1000 / 60 / 60 / 24
+			: 7;
+		let awayBreak = awayLastGame !== null
+			? (game.startDateTime.getTime() - awayLastGame.getTime()) / 1000 / 60 / 60 / 24
+			: 7;
+		homeBreak = homeBreak < 20 ? homeBreak : 7;
+		awayBreak = awayBreak < 20 ? awayBreak : 7;
+		const homeElo = homeTeam?.elo ?? 1500;
+		const awayElo = awayTeam?.elo ?? 1500;
+		const homeTeamChance = chance(
+			homeElo,
+			awayElo,
+			!game.neutralSite,
+			false,
+			game.seasonType,
+			homeBreak,
+			awayBreak);
+		const awayTeamChance = chance(
+			awayElo,
+			homeElo,
+			false,
+			!game.neutralSite,
+			game.seasonType,
+			awayBreak,
+			homeBreak);
+		const added: number = Number(homeTeamChance) + Number(awayTeamChance);
+		const r = Math.random();
 
-			if (r < homeTeamChance) {
-				homeTeam?.winGame(game.awayTeamId);
-				awayTeam?.loseGame(game.homeTeamId);
-
-				if (homeTeam !== undefined) {
-					homeTeam.elo = newElo(
-						homeTeam.elo,
-						awayTeam?.elo ?? 1500,
-						!game.neutralSite,
-						false,
-						game.seasonType,
-						homeBreak,
-						awayBreak,
-						Outcome.WIN);
-				}
-
-				if (awayTeam !== undefined) {
-					awayTeam.elo = newElo(
-						awayTeam.elo,
-						homeTeam?.elo ?? 1500,
-						false,
-						!game.neutralSite,
-						game.seasonType,
-						awayBreak,
-						homeBreak,
-						Outcome.LOSS);
-				}
-
-				if (isSoonGame) {
-					soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-				}
-			} else if (r < added) {
-				homeTeam?.loseGame(game.awayTeamId);
-				awayTeam?.winGame(game.homeTeamId);
-
-				if (homeTeam !== undefined) {
-					homeTeam.elo = newElo(
-						homeTeam.elo,
-						awayTeam?.elo ?? 1500,
-						!game.neutralSite,
-						false,
-						game.seasonType,
-						homeBreak,
-						awayBreak,
-						Outcome.LOSS);
-				}
-
-				if (awayTeam !== undefined) {
-					awayTeam.elo = newElo(
-						awayTeam.elo,
-						homeTeam?.elo ?? 1500,
-						false,
-						!game.neutralSite,
-						game.seasonType,
-						awayBreak,
-						homeBreak,
-						Outcome.WIN);
-				}
-
-				if (isSoonGame) {
-					soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-				}
-			} else {
-				homeTeam?.tieGame(game.awayTeamId);
-				awayTeam?.tieGame(game.homeTeamId);
-
-				if (homeTeam !== undefined) {
-					homeTeam.elo = newElo(
-						homeTeam.elo,
-						awayTeam?.elo ?? 1500,
-						!game.neutralSite,
-						false,
-						game.seasonType,
-						homeBreak,
-						awayBreak,
-						Outcome.TIE);
-				}
-
-				if (awayTeam !== undefined) {
-					awayTeam.elo = newElo(
-						awayTeam.elo,
-						homeTeam?.elo ?? 1500,
-						false,
-						!game.neutralSite,
-						game.seasonType,
-						awayBreak,
-						homeBreak,
-						Outcome.TIE);
-				}
-
-				if (isSoonGame) {
-					soonGames.push(new SimGame(game.id, GameOutcome.TIE));
-				}
-			}
+		if (r < homeTeamChance) {
+			homeTeam?.winGame(game.awayTeamId);
+			awayTeam?.loseGame(game.homeTeamId);
 
 			if (homeTeam !== undefined) {
-				homeTeam.lastGame = game.startDateTime;
+				homeTeam.elo = newElo(
+					homeTeam.elo,
+					awayTeam?.elo ?? 1500,
+					!game.neutralSite,
+					false,
+					game.seasonType,
+					homeBreak,
+					awayBreak,
+					Outcome.WIN);
 			}
 
 			if (awayTeam !== undefined) {
-				awayTeam.lastGame = game.startDateTime;
+				awayTeam.elo = newElo(
+					awayTeam.elo,
+					homeTeam?.elo ?? 1500,
+					false,
+					!game.neutralSite,
+					game.seasonType,
+					awayBreak,
+					homeBreak,
+					Outcome.LOSS);
 			}
+
+			if (isSoonGame) {
+				soonGames.push(new SimGame(game.id, GameOutcome.HOME));
+			}
+		} else if (r < added) {
+			homeTeam?.loseGame(game.awayTeamId);
+			awayTeam?.winGame(game.homeTeamId);
+
+			if (homeTeam !== undefined) {
+				homeTeam.elo = newElo(
+					homeTeam.elo,
+					awayTeam?.elo ?? 1500,
+					!game.neutralSite,
+					false,
+					game.seasonType,
+					homeBreak,
+					awayBreak,
+					Outcome.LOSS);
+			}
+
+			if (awayTeam !== undefined) {
+				awayTeam.elo = newElo(
+					awayTeam.elo,
+					homeTeam?.elo ?? 1500,
+					false,
+					!game.neutralSite,
+					game.seasonType,
+					awayBreak,
+					homeBreak,
+					Outcome.WIN);
+			}
+
+			if (isSoonGame) {
+				soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
+			}
+		} else {
+			homeTeam?.tieGame(game.awayTeamId);
+			awayTeam?.tieGame(game.homeTeamId);
+
+			if (homeTeam !== undefined) {
+				homeTeam.elo = newElo(
+					homeTeam.elo,
+					awayTeam?.elo ?? 1500,
+					!game.neutralSite,
+					false,
+					game.seasonType,
+					homeBreak,
+					awayBreak,
+					Outcome.TIE);
+			}
+
+			if (awayTeam !== undefined) {
+				awayTeam.elo = newElo(
+					awayTeam.elo,
+					homeTeam?.elo ?? 1500,
+					false,
+					!game.neutralSite,
+					game.seasonType,
+					awayBreak,
+					homeBreak,
+					Outcome.TIE);
+			}
+
+			if (isSoonGame) {
+				soonGames.push(new SimGame(game.id, GameOutcome.TIE));
+			}
+		}
+
+		if (homeTeam !== undefined) {
+			homeTeam.lastGame = game.startDateTime;
+		}
+
+		if (awayTeam !== undefined) {
+			awayTeam.lastGame = game.startDateTime;
 		}
 	}
 

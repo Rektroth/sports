@@ -49,15 +49,28 @@ export default class SimTeam {
 	 * Creates a new instance of SimTeam.
 	 * @param team - The team entity being simulated.
 	 */
-	constructor (team: Team) {
-		this.id = team.id;
-		this.divisionId = team.divisionId;
-		this.conferenceId = team.division?.conferenceId ?? 0;
-		this.winOpponents = [];
-		this.lossOpponents = [];
-		this.tieOpponents = [];
-		this.elo = team.eloScores !== undefined ? team.eloScores[0].eloScore : 1500;
-		this.seed = 0;
+	constructor (
+		id: number,
+		divisionId: number,
+		conferenceId: number,
+		winOpponents: number[] = [],
+		lossOpponents: number[] = [],
+		tieOpponents: number[] = [],
+		elo: number = 1500,
+		seed: number = 0,
+		divisionRank: number = 0,
+		lastGame: Date = new Date()
+	) {
+		this.id = id;
+		this.divisionId = divisionId;
+		this.conferenceId = conferenceId;
+		this.winOpponents = winOpponents;
+		this.lossOpponents = lossOpponents;
+		this.tieOpponents = tieOpponents;
+		this.elo = elo;
+		this.seed = seed;
+		this.divisionRank = divisionRank;
+		this.lastGame = lastGame;
 	}
 
 	/**
