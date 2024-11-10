@@ -53,10 +53,10 @@ export default class SimTeam {
 		id: number,
 		divisionId: number,
 		conferenceId: number,
+		elo: number = 1500,
 		winOpponents: number[] = [],
 		lossOpponents: number[] = [],
 		tieOpponents: number[] = [],
-		elo: number = 1500,
 		seed: number = 0,
 		divisionRank: number = 0,
 		lastGame: Date = new Date()

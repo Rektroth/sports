@@ -135,16 +135,8 @@ export default async function main (): Promise<void> {
 
 	const completedGames = games.filter(g => g.homeScore !== null && g.awayScore !== null);
 	const uncompletedGames = games.filter(g => g.homeScore === null && g.awayScore === null);
-
-	const soonGameIds = (await gameRepo.find({
-		where: {
-			homeScore: IsNull(),
-			week: uncompletedGames[0].week
-		},
-		order: {
-			startDateTime: 'ASC'
-		}
-	})).map(sg => sg.id);
+	const currentWeek = uncompletedGames[0].week;
+	const soonGameIds = games.filter(g => g.week === currentWeek).map(sg => sg.id);
 
 	console.log(`Simulating ${SIMS} seasons...`);
 
@@ -172,7 +164,11 @@ export default async function main (): Promise<void> {
 	const simTeams = await complete(completedGames, teams);
 
 	for (let i = 0; i < SIMS; i++) {
-		await simulate(uncompletedGames, simTeams, conferences, soonGameIds);
+		await simulate(
+			uncompletedGames,
+			simTeams,
+			conferences,
+			soonGameIds);
 		printProgress(String(((i + 1) / SIMS) * 100));
 	}
 
@@ -202,7 +198,8 @@ async function complete(games: Game[], teamEntities: Team[]): Promise<SimTeam[]>
 	const teams = teamEntities.map(t => new SimTeam(
 		t.id,
 		t.divisionId,
-		t.division?.conferenceId ?? 0
+		t.division?.conferenceId ?? 0,
+		t.eloScores !== undefined ? t.eloScores[0].eloScore : 1500
 	));
 
 	for (let i = 0; i < regSeasonGames.length; i++) {
@@ -236,10 +233,10 @@ async function simulate (
 		t.id,
 		t.divisionId,
 		t.conferenceId,
+		t.elo,
 		t.winOpponents,
 		t.lossOpponents,
 		t.tieOpponents,
-		t.elo,
 		t.seed,
 		t.divisionRank,
 		t.lastGame
