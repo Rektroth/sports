@@ -61,16 +61,16 @@ export default class SimTeam {
 		divisionRank: number = 0,
 		lastGame: Date = new Date()
 	) {
-		this.id = id;
-		this.divisionId = divisionId;
-		this.conferenceId = conferenceId;
-		this.winOpponents = winOpponents;
-		this.lossOpponents = lossOpponents;
-		this.tieOpponents = tieOpponents;
-		this.elo = elo;
-		this.seed = seed;
-		this.divisionRank = divisionRank;
-		this.lastGame = lastGame;
+		this.id = structuredClone(id);
+		this.divisionId = structuredClone(divisionId);
+		this.conferenceId = structuredClone(conferenceId);
+		this.winOpponents = structuredClone(winOpponents);
+		this.lossOpponents = structuredClone(lossOpponents);
+		this.tieOpponents = structuredClone(tieOpponents);
+		this.elo = structuredClone(elo);
+		this.seed = structuredClone(seed);
+		this.divisionRank = structuredClone(divisionRank);
+		this.lastGame = structuredClone(lastGame);
 	}
 
 	/**

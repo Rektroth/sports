@@ -386,7 +386,6 @@ async function simulate (
 
 		const homeTeam = teams.find(t => t.id === game.homeTeamId);
 		const awayTeam = teams.find(t => t.id === game.awayTeamId);
-		console.log(homeTeam);
 		const homeLastGame = homeTeam?.lastGame ?? null;
 		const awayLastGame = awayTeam?.lastGame ?? null;
 		let homeBreak = homeLastGame !== null
