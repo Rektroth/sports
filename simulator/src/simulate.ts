@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-import { IsNull, LessThan, MoreThan, Or } from 'typeorm';
+import { MoreThan } from 'typeorm';
 import { chance, newElo, Outcome } from '@rektroth/elo';
 import {
 	Conference,
@@ -112,8 +112,6 @@ const gameRepo = simDataSource.getRepository(Game);
 const teamChancesRepo = simDataSource.getRepository(TeamChances);
 const teamChancesByGameRepo = simDataSource.getRepository(TeamChancesByGame);
 
-var appearances: TeamAppearances[];
-
 main();
 
 export default async function main (): Promise<void> {
@@ -157,10 +155,8 @@ export default async function main (): Promise<void> {
 		}
 	});
 
-	appearances = teams.map(t => new TeamAppearances(t.id, soonGameIds));
-
+	const appearances = teams.map(t => new TeamAppearances(t.id, soonGameIds));
 	const conferences = await conferenceRepo.find();
-
 	const simTeams = await complete(completedGames, teams);
 
 	for (let i = 0; i < SIMS; i++) {
@@ -168,7 +164,8 @@ export default async function main (): Promise<void> {
 			uncompletedGames,
 			simTeams,
 			conferences,
-			soonGameIds);
+			soonGameIds,
+			appearances);
 		printProgress(String(((i + 1) / SIMS) * 100));
 	}
 
@@ -188,7 +185,7 @@ export default async function main (): Promise<void> {
 		})[0]
 		.week;
 	
-	await analysis(lastGameWeek);
+	await analysis(appearances, lastGameWeek);
 	console.log();
 	process.exit();
 }
@@ -224,7 +221,8 @@ async function simulate (
 	games: Game[],
 	preTeams: SimTeam[],
 	conferences: Conference[],
-	soonGameIds: number[]
+	soonGameIds: number[],
+	appearances: TeamAppearances[]
 ): Promise<void> {
 	const preSeasonGames = games.filter(g => g.seasonType === SeasonType.PRE);
 	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
@@ -1105,7 +1103,7 @@ async function simulatePlayoffGame (
 	return awayTeam;
 }
 
-async function analysis(week: number): Promise<void> {
+async function analysis(appearances: TeamAppearances[], week: number): Promise<void> {
 	for (let i = 0; i < appearances.length; i++) {
 		const seed7Chance = appearances[i].numSeed7 / SIMS;
 		const seed6Chance = appearances[i].numSeed6 / SIMS;
