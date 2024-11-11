@@ -1,31 +1,29 @@
-import { type Team } from '@rektroth/sports-entities';
-
 /** Represents an NFL team that is being simulated. */
 export default class SimTeam {
 	/**
 	 * The team's ID.
 	 */
-	id: number;
+	private id: number;
 	/**
 	 * The ID of the team's division.
 	 */
-	divisionId: number;
+	private divisionId: number;
 	/**
 	 * The ID of the team's conference.
 	 */
-	conferenceId: number;
+	private conferenceId: number;
 	/**
 	 * List of opponents beaten.
 	 */
-	winOpponents: number[];
+	private winOpponents: number[];
 	/**
 	 * List of opponents lost to.
 	 */
-	lossOpponents: number[];
+	private lossOpponents: number[];
 	/**
 	 * List of opponents tied with.
 	 */
-	tieOpponents: number[];
+	private tieOpponents: number[];
 	/**
 	 * The team's elo rating.
 	 */
@@ -73,6 +71,30 @@ export default class SimTeam {
 		this.lastGame = structuredClone(lastGame);
 	}
 
+	getId(): number {
+		return this.id;
+	}
+
+	getDivisionId(): number {
+		return this.divisionId;
+	}
+
+	getConferenceId(): number {
+		return this.conferenceId;
+	}
+
+	getWinOpponents (): number[] {
+		return this.winOpponents;
+	}
+
+	getLossOpponents (): number[] {
+		return this.lossOpponents;
+	}
+
+	getTieOpponents (): number[] {
+		return this.tieOpponents;
+	}
+
 	/**
 	 * Adds a team to the list of opponents beaten.
 	 * @param teamId The ID of the opponent beaten.
@@ -98,19 +120,74 @@ export default class SimTeam {
 	}
 
 	/**
+	 * Gets the team's total wins.
+	 * @returns The team's total wins.
+	 */
+	getTotalWins (): number {
+		return this.winOpponents.length;
+	}
+
+	/**
+	 * Gets the team's total losses.
+	 * @returns The team's total losses.
+	 */
+	getTotalLosses (): number {
+		return this.lossOpponents.length;
+	}
+
+	/**
+	 * Gets the team's total ties.
+	 * @returns The team's total ties.
+	 */
+	getTotalTies (): number {
+		return this.tieOpponents.length;
+	}
+
+	/**
+	 * Gets the team's total wins with ties calculated as 1/2 of a win.
+	 * @returns The team's total wins.
+	 */
+	getTotalWinsWithTies (): number {
+		return this.getTotalWins() + (0.5 * this.getTotalTies());
+	}
+
+	/**
+	 * Gets the team's total losses with ties calculated as 1/2 of a loss.
+	 * @returns The team's total losses.
+	 */
+	getTotalLossesWithTies (): number {
+		return this.getTotalLosses() + (0.5 * this.getTotalTies());
+	}
+
+	/**
+	 * Gets the team's total games played.
+	 * @returns The team's total games played.
+	 */
+	getTotalGamesPlayed (): number {
+		return this.getTotalWins() + this.getTotalLosses() + this.getTotalTies();
+	}
+
+	/**
+	 * Gets the team's total number of games remaining to be played based on a provided number of games in the season.
+	 * @param totalGamesOfSeason The total number of games the team plays this season.
+	 * @returns The team's total number of games remaining to be played.
+	 */
+	getTotalGamesRemaining (totalGamesOfSeason: number): number {
+		return totalGamesOfSeason - this.getTotalGamesPlayed();
+	}
+
+	/**
 	 * Gets the team's win percentage.
 	 * @returns The team's win percentage.
 	 */
 	getWinPercentage (): number {
-		const totalGames = this.winOpponents.length + this.lossOpponents.length + this.tieOpponents.length;
+		const totalGames = this.getTotalGamesPlayed();
 
 		if (totalGames === 0) {
 			return 0;
 		}
 
-		const wins = this.winOpponents.length;
-		const ties = this.tieOpponents.length;
-		return (wins + (0.5 * ties)) / totalGames;
+		return this.getTotalWinsWithTies() / totalGames;
 	}
 
 	/**
@@ -137,8 +214,8 @@ export default class SimTeam {
 	 * @returns The team's strength of victory.
 	 */
 	getStrengthOfVictory (teams: SimTeam[]): number {
-		const wins = this.winOpponents.length;
-		const ties = this.tieOpponents.length;
+		const wins = this.getTotalWins();
+		const ties = this.getTotalTies();
 
 		if (wins === 0 && ties === 0) {
 			return 0;
@@ -154,7 +231,7 @@ export default class SimTeam {
 			sum += 0.5 * (teams.find(t => t.id === this.tieOpponents[i])?.getWinPercentage() ?? 0);
 		}
 
-		return sum / (wins + (0.5 * ties));
+		return sum / this.getTotalWinsWithTies();
 	}
 
 	/**
@@ -163,9 +240,9 @@ export default class SimTeam {
 	 * @returns The team's strength of schedule.
 	 */
 	getStrengthOfSchedule (teams: SimTeam[]): number {
-		const wins = this.winOpponents.length;
-		const losses = this.lossOpponents.length;
-		const ties = this.tieOpponents.length;
+		const wins = this.getTotalWins();
+		const losses = this.getTotalLosses();
+		const ties = this.getTotalTies();
 		const totalGames = wins + losses + ties;
 		let sum = 0;
 
@@ -182,5 +259,15 @@ export default class SimTeam {
 		}
 
 		return sum / totalGames;
+	}
+
+	/**
+	 * Gets the team's magic number to be eliminated from the seed presently held by any given team.
+	 * @param team The team to be compared against.
+	 * @returns The team's magic number.
+	 */
+	getMagicNumber (team: SimTeam, totalGamesPerSeason: number): number {
+		// TODO: the "1" in the equation should be removed in the event that it is impossible for "this" to win a tiebreaker against "team"
+		return totalGamesPerSeason + 1 - team.getTotalWinsWithTies() - this.getTotalLossesWithTies();
 	}
 }

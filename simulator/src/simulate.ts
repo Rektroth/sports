@@ -105,6 +105,12 @@ const DB_PASSWORD = process.env.DB_PASSWORD ?? 'postgres';
 const SUPER_BOWL_HOST = process.env.SUPER_BOWL_HOST ?? 1;
 const CONFIDENCE_INTERVAL = isNaN(Number(process.env.CONFIDENCE_INTERVAL)) ? 2.576 : Number(process.env.CONFIDENCE_INTERVAL);
 
+// This number is currently true for seasons 2021
+// and forward, but older seasons have fewer games,
+// and this number may change for future seasons.
+// This number will need to be made dynamic.
+const GAMES_PER_SEASON = 17;
+
 const simDataSource = SportsDataSource(SCHEMA, DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD);
 const conferenceRepo = simDataSource.getRepository(Conference);
 const teamRepo = simDataSource.getRepository(Team);
@@ -157,10 +163,10 @@ export default async function main (): Promise<void> {
 
 	const appearances = teams.map(t => new TeamAppearances(t.id, soonGameIds));
 	const conferences = await conferenceRepo.find();
-	const simTeams = await complete(completedGames, teams);
+	const simTeams = complete(completedGames, teams);
 
 	for (let i = 0; i < SIMS; i++) {
-		await simulate(
+		simulate(
 			uncompletedGames,
 			simTeams,
 			conferences,
@@ -185,12 +191,12 @@ export default async function main (): Promise<void> {
 		})[0]
 		.week;
 	
-	await analysis(appearances, lastGameWeek);
+	await analysis(appearances, lastGameWeek, simTeams);
 	console.log();
 	process.exit();
 }
 
-async function complete(games: Game[], teamEntities: Team[]): Promise<SimTeam[]> {
+function complete(games: Game[], teamEntities: Team[]): SimTeam[] {
 	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
 	const teams = teamEntities.map(t => new SimTeam(
 		t.id,
@@ -203,38 +209,38 @@ async function complete(games: Game[], teamEntities: Team[]): Promise<SimTeam[]>
 		const game = regSeasonGames[i];
 
 		if (game.homeScore > game.awayScore) {
-			teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
-			teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
+			teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
+			teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 		} else if (game.homeScore < game.awayScore) {
-			teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
-			teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
+			teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
+			teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 		} else {
-			teams.find(t => t.id === game.homeTeamId)?.tieGame(game.awayTeamId);
-			teams.find(t => t.id === game.awayTeamId)?.tieGame(game.homeTeamId);
+			teams.find(t => t.getId() === game.homeTeamId)?.tieGame(game.awayTeamId);
+			teams.find(t => t.getId() === game.awayTeamId)?.tieGame(game.homeTeamId);
 		}
 	}
 
 	return teams;
 }
 
-async function simulate (
+function simulate (
 	games: Game[],
 	preTeams: SimTeam[],
 	conferences: Conference[],
 	soonGameIds: number[],
 	appearances: TeamAppearances[]
-): Promise<void> {
+) {
 	const preSeasonGames = games.filter(g => g.seasonType === SeasonType.PRE);
 	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
 	const postSeasonGames = games.filter(g => g.seasonType === SeasonType.POST);
 	const teams = preTeams.map(t => new SimTeam(
-		t.id,
-		t.divisionId,
-		t.conferenceId,
+		t.getId(),
+		t.getDivisionId(),
+		t.getConferenceId(),
 		t.elo,
-		t.winOpponents,
-		t.lossOpponents,
-		t.tieOpponents,
+		t.getWinOpponents(),
+		t.getLossOpponents(),
+		t.getTieOpponents(),
 		t.seed,
 		t.divisionRank,
 		t.lastGame
@@ -246,8 +252,8 @@ async function simulate (
 		const isSoonGame = soonGameIds.find(sgi => sgi === game.id) !== undefined;
 
 		if (game.homeScore == null) {
-			const homeTeam = teams.find(t => t.id === game.homeTeamId);
-			const awayTeam = teams.find(t => t.id === game.awayTeamId);
+			const homeTeam = teams.find(t => t.getId() === game.homeTeamId);
+			const awayTeam = teams.find(t => t.getId() === game.awayTeamId);
 			const homeLastGame = homeTeam?.lastGame ?? null;
 			const awayLastGame = awayTeam?.lastGame ?? null;
 			let homeBreak = homeLastGame !== null
@@ -379,8 +385,8 @@ async function simulate (
 		const game = regSeasonGames[i];
 		const isSoonGame = soonGameIds.find(sgi => sgi === game.id) !== undefined;
 
-		const homeTeam = teams.find(t => t.id === game.homeTeamId);
-		const awayTeam = teams.find(t => t.id === game.awayTeamId);
+		const homeTeam = teams.find(t => t.getId() === game.homeTeamId);
+		const awayTeam = teams.find(t => t.getId() === game.awayTeamId);
 		const homeLastGame = homeTeam?.lastGame ?? null;
 		const awayLastGame = awayTeam?.lastGame ?? null;
 		let homeBreak = homeLastGame !== null
@@ -517,11 +523,11 @@ async function simulate (
 	}
 
 	for (let i = 0; i < conferences.length; i++) {
-		let confTeams = teams.filter(t => t.conferenceId === conferences[i].id);
+		let confTeams = teams.filter(t => t.getConferenceId() === conferences[i].id);
 		confTeams = nflSort(confTeams);
 		
 		for (let j = 0; j <= 6; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confTeams[j].id);
+			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
 
 			if (appearance === undefined) {
 				continue;
@@ -678,23 +684,23 @@ async function simulate (
 
 	for (let i = 0; i < postSeasonGames.length; i++) {
 		const game = postSeasonGames[i];
-		const homeTeam = teams.find(t => t.id === game.homeTeamId);
-		const awayTeam = teams.find(t => t.id === game.awayTeamId);
+		const homeTeam = teams.find(t => t.getId() === game.homeTeamId);
+		const awayTeam = teams.find(t => t.getId() === game.awayTeamId);
 		const isSoonGame = soonGameIds.find(sgi => sgi === game.id) !== undefined;
 
 		if (i < 6 && homeTeam !== undefined && awayTeam !== undefined) {
 			if (game.homeScore != null) {
 				if (game.homeScore > game.awayScore) {
-					teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 					wcWinners = wcWinners.concat(homeTeam);
 
 					if (isSoonGame) {
 						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 					}
 				} else {
-					teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 					wcWinners = wcWinners.concat(awayTeam);
 
 					if (isSoonGame) {
@@ -705,16 +711,16 @@ async function simulate (
 		} else if (i < 10 && homeTeam !== undefined && awayTeam !== undefined) {
 			if (game.homeScore != null) {
 				if (game.homeScore > game.awayScore) {
-					teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 					divWinners = divWinners.concat(homeTeam);
 
 					if (isSoonGame) {
 						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 					}
 				} else {
-					teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 					divWinners = divWinners.concat(awayTeam);
 
 					if (isSoonGame) {
@@ -725,16 +731,16 @@ async function simulate (
 		} else if (i < 12 && homeTeam !== undefined && awayTeam !== undefined) {
 			if (game.homeScore != null) {
 				if (game.homeScore > game.awayScore) {
-					teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 					confWinners = confWinners.concat(homeTeam);
 
 					if (isSoonGame) {
 						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 					}
 				} else {
-					teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 					confWinners = confWinners.concat(awayTeam);
 
 					if (isSoonGame) {
@@ -746,34 +752,34 @@ async function simulate (
 			if (game.homeScore != null) {
 				if (game.homeScore > game.awayScore) {
 					superBowlWinner = homeTeam;
-					teams.find(t => t.id === game.homeTeamId)?.winGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.loseGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 
 					if (isSoonGame) {
 						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 					}
 				} else {
 					superBowlWinner = awayTeam;
-					teams.find(t => t.id === game.homeTeamId)?.loseGame(game.awayTeamId);
-					teams.find(t => t.id === game.awayTeamId)?.winGame(game.homeTeamId);
+					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
+					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 
 					if (isSoonGame) {
 						soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 					}
 				}
 			} else {
-				superBowlWinner = await simulatePlayoffGame(homeTeam, awayTeam, false, false);
+				superBowlWinner = simulatePlayoffGame(homeTeam, awayTeam, false, false);
 			}
 		}
 	}
 
 	for (let i = 0; i < conferences.length; i++) {
 		const confTeams = teams
-			.filter(t => t.conferenceId === conferences[i].id)
+			.filter(t => t.getConferenceId() === conferences[i].id)
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 		
 		for (let j = 1; j <= 3; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confTeams[j].id);
+			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
 	
 			if (appearance !== undefined) {
 				appearance.numHostWc++;
@@ -797,33 +803,33 @@ async function simulate (
 		}
 
 		const wcGame1 = postSeasonGames.find(g =>
-			g.homeTeamId === confTeams[1].id && g.awayTeamId === confTeams[6].id);
+			g.homeTeamId === confTeams[1].getId() && g.awayTeamId === confTeams[6].getId());
 		const wcGame2 = postSeasonGames.find(g =>
-			g.homeTeamId === confTeams[2].id && g.awayTeamId === confTeams[5].id);
+			g.homeTeamId === confTeams[2].getId() && g.awayTeamId === confTeams[5].getId());
 		const wcGame3 = postSeasonGames.find(g =>
-			g.homeTeamId === confTeams[3].id && g.awayTeamId === confTeams[4].id);
+			g.homeTeamId === confTeams[3].getId() && g.awayTeamId === confTeams[4].getId());
 
 		if (wcGame1 === undefined) {
-			const winner = await simulatePlayoffGame(confTeams[1], confTeams[6], false, false);
+			const winner = simulatePlayoffGame(confTeams[1], confTeams[6], false, false);
 			wcWinners = wcWinners.concat(winner);
 		}
 
 		if (wcGame2 === undefined) {
-			const winner = await simulatePlayoffGame(confTeams[2], confTeams[5], false, false);
+			const winner = simulatePlayoffGame(confTeams[2], confTeams[5], false, false);
 			wcWinners = wcWinners.concat(winner);
 		}
 
 		if (wcGame3 === undefined) {
-			const winner = await simulatePlayoffGame(confTeams[3], confTeams[4], false, false);
+			const winner = simulatePlayoffGame(confTeams[3], confTeams[4], false, false);
 			wcWinners = wcWinners.concat(winner);
 		}
 
 		const confWcWinners = wcWinners
-			.filter(t => t.conferenceId === conferences[i].id)
+			.filter(t => t.getConferenceId() === conferences[i].id)
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 		
 		for (let j = 0; j <= 2; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confWcWinners[j].id);
+			const appearance = appearances.find(ta => ta.teamId === confWcWinners[j].getId());
 		
 			if (appearance !== undefined) {
 				appearance.numMakeDiv++;
@@ -866,7 +872,7 @@ async function simulate (
 			}
 		}
 
-		const appearance = appearances.find(ta => ta.teamId === confTeams[0].id);
+		const appearance = appearances.find(ta => ta.teamId === confTeams[0].getId());
 
 		if (appearance !== undefined) {
 			appearance.numMakeDiv++;
@@ -892,26 +898,26 @@ async function simulate (
 		}
 
 		const divGame1 = postSeasonGames.find(g =>
-			g.homeTeamId === confTeams[0].id && g.awayTeamId === confWcWinners[2].id);
+			g.homeTeamId === confTeams[0].getId() && g.awayTeamId === confWcWinners[2].getId());
 		const divGame2 = postSeasonGames.find(g =>
-			g.homeTeamId === confWcWinners[0].id && g.awayTeamId === confWcWinners[1].id);
+			g.homeTeamId === confWcWinners[0].getId() && g.awayTeamId === confWcWinners[1].getId());
 
 		if (divGame1 === undefined) {
-			const winner = await simulatePlayoffGame(confTeams[0], confWcWinners[2], false, false);
+			const winner = simulatePlayoffGame(confTeams[0], confWcWinners[2], false, false);
 			divWinners = divWinners.concat(winner);
 		}
 
 		if (divGame2 === undefined) {
-			const winner = await simulatePlayoffGame(confWcWinners[0], confWcWinners[1], false, false);
+			const winner = simulatePlayoffGame(confWcWinners[0], confWcWinners[1], false, false);
 			divWinners = divWinners.concat(winner);
 		}
 
 		const confDivWinners = divWinners
-			.filter(t => t.conferenceId === conferences[i].id)
+			.filter(t => t.getConferenceId() === conferences[i].id)
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 
 		for (let j = 0; j <= 1; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confDivWinners[j].id);
+			const appearance = appearances.find(ta => ta.teamId === confDivWinners[j].getId());
 
 			if (appearance !== undefined) {
 				appearance.numMakeConf++;
@@ -955,13 +961,13 @@ async function simulate (
 		}
 
 		const confGame = postSeasonGames.find(g =>
-			g.homeTeamId === confDivWinners[0].id && g.awayTeamId === confDivWinners[1].id);
+			g.homeTeamId === confDivWinners[0].getId() && g.awayTeamId === confDivWinners[1].getId());
 
 		if (confGame === undefined) {
-			const winner = await simulatePlayoffGame(confDivWinners[0], confDivWinners[1], false, false);
+			const winner = simulatePlayoffGame(confDivWinners[0], confDivWinners[1], false, false);
 			confWinners = confWinners.concat(winner);
 
-			const appearance = appearances.find(ta => ta.teamId === winner.id);
+			const appearance = appearances.find(ta => ta.teamId === winner.getId());
 
 			if (appearance !== undefined) {
 				appearance.numMakeSb++;
@@ -986,16 +992,16 @@ async function simulate (
 	}
 
 	if (superBowlWinner === undefined || superBowlWinner === null) {
-		if (confWinners[0].id === SUPER_BOWL_HOST) {
-			superBowlWinner = await simulatePlayoffGame(confWinners[1], confWinners[0], false, false);
-		} else if (confWinners[1].id === SUPER_BOWL_HOST) {
-			superBowlWinner = await simulatePlayoffGame(confWinners[0], confWinners[1], false, false);
+		if (confWinners[0].getId() === SUPER_BOWL_HOST) {
+			superBowlWinner = simulatePlayoffGame(confWinners[1], confWinners[0], false, false);
+		} else if (confWinners[1].getId() === SUPER_BOWL_HOST) {
+			superBowlWinner = simulatePlayoffGame(confWinners[0], confWinners[1], false, false);
 		} else {
-			superBowlWinner = await simulatePlayoffGame(confWinners[0], confWinners[1], true, false);
+			superBowlWinner = simulatePlayoffGame(confWinners[0], confWinners[1], true, false);
 		}
 	}
 
-	const appearance = appearances.find(ta => ta.teamId === superBowlWinner.id);
+	const appearance = appearances.find(ta => ta.teamId === superBowlWinner.getId());
 
 	if (appearance !== undefined) {
 		appearance.numWinSb++;
@@ -1037,12 +1043,12 @@ async function simulate (
 	}
 }
 
-async function simulatePlayoffGame (
+function simulatePlayoffGame (
 	homeTeam: SimTeam,
 	awayTeam: SimTeam,
 	neutralSite: boolean,
 	homeHadBye: boolean
-): Promise<SimTeam> {
+): SimTeam {
 	const homeElo = homeTeam.elo;
 	const awayElo = awayTeam.elo;
 	const homeTeamChance = chance(homeElo, awayElo, !neutralSite, false, SeasonType.POST, homeHadBye ? 14 : 7, 7);
@@ -1103,15 +1109,38 @@ async function simulatePlayoffGame (
 	return awayTeam;
 }
 
-async function analysis(appearances: TeamAppearances[], week: number): Promise<void> {
+async function analysis(appearances: TeamAppearances[], week: number, teams: SimTeam[]): Promise<void> {
+	let conferences: SimTeam[][] = [];
+	const conferenceIds = [...new Set(teams.map(t => t.getConferenceId()))]; // [...new Set( )] removes duplicate values
+
+	for (let i = 0; i < conferenceIds.length; i++) {
+		const conferenceId = conferenceIds[i];
+		const conferenceTeams = teams.filter(t => t.getConferenceId() === conferenceId);
+		conferences = conferences.concat([ nflSort(conferenceTeams) ]);
+	}
+
 	for (let i = 0; i < appearances.length; i++) {
-		const seed7Chance = appearances[i].numSeed7 / SIMS;
-		const seed6Chance = appearances[i].numSeed6 / SIMS;
-		const seed5Chance = appearances[i].numSeed5 / SIMS;
-		const seed4Chance = appearances[i].numSeed4 / SIMS;
-		const seed3Chance = appearances[i].numSeed3 / SIMS;
-		const seed2Chance = appearances[i].numSeed2 / SIMS;
-		const seed1Chance = appearances[i].numSeed1 / SIMS;
+		const appearance = appearances[i];
+		const team = teams.find(t => t.getId() === appearance.teamId);
+		if (team === undefined) continue;
+		const conference = conferences.find(c => c.some(t => t.getConferenceId() === team.getConferenceId()));
+		if (conference === undefined) continue;
+
+		const seed7MagicNumber = team.getMagicNumber(conference[6], GAMES_PER_SEASON);
+		const seed6MagicNumber = team.getMagicNumber(conference[5], GAMES_PER_SEASON);
+		const seed5MagicNumber = team.getMagicNumber(conference[4], GAMES_PER_SEASON);
+		const seed4MagicNumber = team.getMagicNumber(conference[3], GAMES_PER_SEASON);
+		const seed3MagicNumber = team.getMagicNumber(conference[2], GAMES_PER_SEASON);
+		const seed2MagicNumber = team.getMagicNumber(conference[1], GAMES_PER_SEASON);
+		const seed1MagicNumber = team.getMagicNumber(conference[0], GAMES_PER_SEASON);
+
+		let seed7Chance = appearances[i].numSeed7 / SIMS;
+		let seed6Chance = appearances[i].numSeed6 / SIMS;
+		let seed5Chance = appearances[i].numSeed5 / SIMS;
+		let seed4Chance = appearances[i].numSeed4 / SIMS;
+		let seed3Chance = appearances[i].numSeed3 / SIMS;
+		let seed2Chance = appearances[i].numSeed2 / SIMS;
+		let seed1Chance = appearances[i].numSeed1 / SIMS;
 		const hostWcChance = appearances[i].numHostWc / SIMS;
 		const hostDivChance = appearances[i].numHostDiv / SIMS;
 		const hostConfChance = appearances[i].numHostConf / SIMS;
@@ -1119,6 +1148,34 @@ async function analysis(appearances: TeamAppearances[], week: number): Promise<v
 		let makeConfChance = appearances[i].numMakeConf / SIMS;
 		let makeSbChance = appearances[i].numMakeSb / SIMS;
 		let winSbChance = appearances[i].numWinSb / SIMS;
+
+		if (seed7MagicNumber > 0 && seed7Chance === 0) {
+			seed7Chance = 0.000001;
+		}
+
+		if (seed6MagicNumber > 0 && seed6Chance === 0) {
+			seed6Chance = 0.000001;
+		}
+
+		if (seed5MagicNumber > 0 && seed5Chance === 0) {
+			seed5Chance = 0.000001;
+		}
+
+		if (seed4MagicNumber > 0 && seed4Chance === 0) {
+			seed4Chance = 0.000001;
+		}
+
+		if (seed3MagicNumber > 0 && seed3Chance === 0) {
+			seed3Chance = 0.000001;
+		}
+
+		if (seed2MagicNumber > 0 && seed2Chance === 0) {
+			seed2Chance = 0.000001;
+		}
+
+		if (seed1MagicNumber > 0 && seed1Chance === 0) {
+			seed1Chance = 0.000001;
+		}
 
 		if (makeDivChance === 0 && seed7Chance > 0 && seed7Chance < 1) {
 			makeDivChance = 0.000001;

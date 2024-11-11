@@ -7,11 +7,11 @@ import type Team from './simteam';
  */
 export default function nflSort (teams: Team[]): Team[] {
 	let newTeams: Team[] = [];
-	const divIds = [...new Set(teams.map(t => t.divisionId))]; // [...new Set( )] removes duplicate values
+	const divIds = [...new Set(teams.map(t => t.getDivisionId()))]; // [...new Set( )] removes duplicate values
 
 	for (let i = 0; i < divIds.length; i++) {
 		const divTeams = teams
-			.filter(t => t.divisionId === divIds[i])
+			.filter(t => t.getDivisionId() === divIds[i])
 			.sort((a, b) => pctSortDiv(a, b, teams));
 
 		for (let j = 0; j < divTeams.length; j++) {
@@ -25,11 +25,11 @@ export default function nflSort (teams: Team[]): Team[] {
 }
 
 function teamSort (a: Team, b: Team, teams: Team[]): number {
-	if (a.divisionId === b.divisionId) {
+	if (a.getDivisionId() === b.getDivisionId()) {
 		return pctSortDiv(a, b, teams);
 	}
 
-	if (a.conferenceId === b.conferenceId) {
+	if (a.getConferenceId() === b.getConferenceId()) {
 		if (a.divisionRank === 0 && b.divisionRank !== 0) {
 			return -1;
 		}
@@ -56,7 +56,7 @@ function pctSortDiv (a: Team, b: Team, teams: Team[]): number {
 		return -1;
 	}
 
-	const divTeams = teams.filter(t => t.divisionId === a.divisionId);
+	const divTeams = teams.filter(t => t.getDivisionId() === a.getDivisionId());
 	const tiedTeams = divTeams.filter(t => t.getWinPercentage() === aPct);
 	return headToHeadSortDiv(a, b, teams, tiedTeams);
 }
@@ -71,7 +71,7 @@ function pctSortConf (a: Team, b: Team, teams: Team[]): number {
 		return -1;
 	}
 
-	const confTeams = teams.filter(t => t.conferenceId === a.conferenceId);
+	const confTeams = teams.filter(t => t.getConferenceId() === a.getConferenceId());
 	const tiedTeams = confTeams.filter(t =>
 		t.getWinPercentage() === aPct &&
 		((a.divisionRank === 0 && t.divisionRank === 0) ||
@@ -85,7 +85,7 @@ function headToHeadSortDiv (
 	teams: Team[],
 	tiedTeams: Team[]
 ): number {
-	const tiedTeamIds = tiedTeams.map(t => t.id);
+	const tiedTeamIds = tiedTeams.map(t => t.getId());
 	const tiedTeamsSorted = tiedTeams.sort((x, y) => {
 		const xPct = x.getWinPercentageAgainstOpponents(tiedTeamIds);
 		const yPct = y.getWinPercentageAgainstOpponents(tiedTeamIds);
@@ -109,11 +109,11 @@ function headToHeadSortDiv (
 	});
 
 	for (let i = 0; i < tiedTeamsSorted.length; i++) {
-		if (tiedTeamsSorted[i].id === a.id) {
+		if (tiedTeamsSorted[i].getId() === a.getId()) {
 			return -1;
 		}
 
-		if (tiedTeamsSorted[i].id === b.id) {
+		if (tiedTeamsSorted[i].getId() === b.getId()) {
 			return 1;
 		}
 	}
@@ -129,7 +129,7 @@ function headToHeadSortConf (
 	teams: Team[],
 	tiedTeams: Team[]
 ): number {
-	const divisions = tiedTeams.map(t => t.divisionId);
+	const divisions = tiedTeams.map(t => t.getDivisionId());
 	const duplicateDivisions = divisions.filter((item, index) =>
 		divisions.indexOf(item) !== index);
 
@@ -140,37 +140,37 @@ function headToHeadSortConf (
 
 		for (let i = 0; i < uniqueDivisions.length; i++) {
 			const divTeams = tiedTeams
-				.filter(t => t.divisionId === uniqueDivisions[i])
+				.filter(t => t.getDivisionId() === uniqueDivisions[i])
 				.sort((x, y) => x.divisionRank < y.divisionRank ? -1 : 1);
 			newTiedTeams = newTiedTeams.concat(divTeams[0]);
 		}
 
 		newTiedTeams = newTiedTeams.sort((x, y) =>
 			headToHeadSortConf(x, y, teams, newTiedTeams));
-		const containsA = newTiedTeams.filter(t => t.id === a.id).length > 0;
-		const containsB = newTiedTeams.filter(t => t.id === b.id).length > 0;
+		const containsA = newTiedTeams.filter(t => t.getId() === a.getId()).length > 0;
+		const containsB = newTiedTeams.filter(t => t.getId() === b.getId()).length > 0;
 
 		if (containsA && containsB) {
 			for (let i = 0; i < newTiedTeams.length; i++) {
-				if (newTiedTeams[i].id === a.id) {
+				if (newTiedTeams[i].getId() === a.getId()) {
 					return -1;
 				}
 
-				if (newTiedTeams[i].id === b.id) {
+				if (newTiedTeams[i].getId() === b.getId()) {
 					return 1;
 				}
 			}
 		}
 
-		if (newTiedTeams[0].id === a.id) {
+		if (newTiedTeams[0].getId() === a.getId()) {
 			return -1;
 		}
 
-		if (newTiedTeams[0].id === b.id) {
+		if (newTiedTeams[0].getId() === b.getId()) {
 			return 1;
 		}
 
-		newTiedTeams = tiedTeams.filter(t => t.id !== newTiedTeams[0].id);
+		newTiedTeams = tiedTeams.filter(t => t.getId() !== newTiedTeams[0].getId());
 		return headToHeadSortConf(a, b, teams, newTiedTeams);
 	}
 
@@ -179,22 +179,22 @@ function headToHeadSortConf (
 			let allWins = true;
 
 			for (let j = 0; j < tiedTeams.length; j++) {
-				if (!tiedTeams[i].winOpponents.includes(tiedTeams[j].id)) {
+				if (!tiedTeams[i].getWinOpponents().includes(tiedTeams[j].getId())) {
 					allWins = false;
 					break;
 				}
 			}
 
 			if (allWins) {
-				if (tiedTeams[i].id === a.id) {
+				if (tiedTeams[i].getId() === a.getId()) {
 					return -1;
 				}
 
-				if (tiedTeams[i].id === b.id) {
+				if (tiedTeams[i].getId() === b.getId()) {
 					return 1;
 				}
 
-				tiedTeams.filter(t => t.id !== tiedTeams[i].id);
+				tiedTeams.filter(t => t.getId() !== tiedTeams[i].getId());
 				return headToHeadSortConf(a, b, teams, tiedTeams);
 			}
 		}
@@ -203,22 +203,22 @@ function headToHeadSortConf (
 			let allLosses = true;
 
 			for (let j = 0; j < tiedTeams.length; j++) {
-				if (!tiedTeams[i].lossOpponents.includes(tiedTeams[j].id)) {
+				if (!tiedTeams[i].getLossOpponents().includes(tiedTeams[j].getId())) {
 					allLosses = false;
 					break;
 				}
 			}
 
 			if (allLosses) {
-				if (tiedTeams[i].id === a.id) {
+				if (tiedTeams[i].getId() === a.getId()) {
 					return 1;
 				}
 
-				if (tiedTeams[i].id === b.id) {
+				if (tiedTeams[i].getId() === b.getId()) {
 					return -1;
 				}
 
-				tiedTeams.filter(t => t.id !== tiedTeams[i].id);
+				tiedTeams.filter(t => t.getId() !== tiedTeams[i].getId());
 				return headToHeadSortConf(a, b, teams, tiedTeams);
 			}
 		}
@@ -226,7 +226,7 @@ function headToHeadSortConf (
 		return confPctSortConf(a, b, teams, tiedTeams);
 	}
 
-	const tiedTeamIds = tiedTeams.map(t => t.id);
+	const tiedTeamIds = tiedTeams.map(t => t.getId());
 
 	const tiedTeamsSorted = tiedTeams.sort((x, y) => {
 		const xPct = x.getWinPercentageAgainstOpponents(tiedTeamIds);
@@ -251,11 +251,11 @@ function headToHeadSortConf (
 	});
 
 	for (let i = 0; i < tiedTeamsSorted.length; i++) {
-		if (tiedTeamsSorted[i].id === a.id) {
+		if (tiedTeamsSorted[i].getId() === a.getId()) {
 			return -1;
 		}
 
-		if (tiedTeamsSorted[i].id === b.id) {
+		if (tiedTeamsSorted[i].getId() === b.getId()) {
 			return 1;
 		}
 	}
@@ -272,8 +272,8 @@ function divPctSortDiv (
 	tiedTeams: Team[]
 ): number {
 	const divTeams = teams
-		.filter(t => t.divisionId === a.divisionId)
-		.map(t => t.id);
+		.filter(t => t.getDivisionId() === a.getDivisionId())
+		.map(t => t.getId());
 	const aPct = a.getWinPercentageAgainstOpponents(divTeams);
 	const bPct = b.getWinPercentageAgainstOpponents(divTeams);
 
@@ -302,14 +302,14 @@ function commonOpponentsPctSortDiv (
 	tiedTeams: Team[]
 ): number {
 	const commonOpps = teams.filter(t => {
-		const opps = t.winOpponents.concat(t.lossOpponents).concat(t.tieOpponents);
+		const opps = t.getWinOpponents().concat(t.getLossOpponents()).concat(t.getTieOpponents());
 
-		if (opps.includes(a.id) && opps.includes(b.id)) {
+		if (opps.includes(a.getId()) && opps.includes(b.getId())) {
 			return true;
 		}
 
 		return false;
-	}).map(t => t.id);
+	}).map(t => t.getId());
 
 	if (commonOpps.length >= 4) {
 		const tiedTeamsSorted = tiedTeams.sort((x, y) => {
@@ -335,11 +335,11 @@ function commonOpponentsPctSortDiv (
 		});
 
 		for (let i = 0; i < tiedTeamsSorted.length; i++) {
-			if (tiedTeamsSorted[i].id === a.id) {
+			if (tiedTeamsSorted[i].getId() === a.getId()) {
 				return -1;
 			}
 
-			if (tiedTeamsSorted[i].id === b.id) {
+			if (tiedTeamsSorted[i].getId() === b.getId()) {
 				return 1;
 			}
 		}
@@ -355,14 +355,14 @@ function commonOpponentsPctSortConf (
 	tiedTeams: Team[]
 ): number {
 	const commonOpps = teams.filter(t => {
-		const opps = t.winOpponents.concat(t.lossOpponents).concat(t.tieOpponents);
+		const opps = t.getWinOpponents().concat(t.getLossOpponents()).concat(t.getTieOpponents());
 
-		if (opps.includes(a.id) && opps.includes(b.id)) {
+		if (opps.includes(a.getId()) && opps.includes(b.getId())) {
 			return true;
 		}
 
 		return false;
-	}).map(t => t.id);
+	}).map(t => t.getId());
 
 	if (commonOpps.length >= 4) {
 		const tiedTeamsSorted = tiedTeams.sort((x, y) => {
@@ -388,11 +388,11 @@ function commonOpponentsPctSortConf (
 		});
 
 		for (let i = 0; i < tiedTeamsSorted.length; i++) {
-			if (tiedTeamsSorted[i].id === a.id) {
+			if (tiedTeamsSorted[i].getId() === a.getId()) {
 				return -1;
 			}
 
-			if (tiedTeamsSorted[i].id === b.id) {
+			if (tiedTeamsSorted[i].getId() === b.getId()) {
 				return 1;
 			}
 		}
@@ -408,8 +408,8 @@ function confPctSortDiv (
 	tiedTeams: Team[]
 ): number {
 	const confTeams = teams
-		.filter(t => t.conferenceId === a.conferenceId)
-		.map(t => t.id);
+		.filter(t => t.getConferenceId() === a.getConferenceId())
+		.map(t => t.getId());
 	const aPct = a.getWinPercentageAgainstOpponents(confTeams);
 	const bPct = b.getWinPercentageAgainstOpponents(confTeams);
 
@@ -438,8 +438,8 @@ function confPctSortConf (
 	tiedTeams: Team[]
 ): number {
 	const confTeams = teams
-		.filter(t => t.conferenceId === a.conferenceId)
-		.map(t => t.id);
+		.filter(t => t.getConferenceId() === a.getConferenceId())
+		.map(t => t.getId());
 	const aPct = a.getWinPercentageAgainstOpponents(confTeams);
 	const bPct = b.getWinPercentageAgainstOpponents(confTeams);
 
