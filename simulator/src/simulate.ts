@@ -1126,14 +1126,6 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		const conference = conferences.find(c => c.some(t => t.getConferenceId() === team.getConferenceId()));
 		if (conference === undefined) continue;
 
-		const seed7MagicNumber = team.getMagicNumber(conference[6], GAMES_PER_SEASON);
-		const seed6MagicNumber = team.getMagicNumber(conference[5], GAMES_PER_SEASON);
-		const seed5MagicNumber = team.getMagicNumber(conference[4], GAMES_PER_SEASON);
-		const seed4MagicNumber = team.getMagicNumber(conference[3], GAMES_PER_SEASON);
-		const seed3MagicNumber = team.getMagicNumber(conference[2], GAMES_PER_SEASON);
-		const seed2MagicNumber = team.getMagicNumber(conference[1], GAMES_PER_SEASON);
-		const seed1MagicNumber = team.getMagicNumber(conference[0], GAMES_PER_SEASON);
-
 		let seed7Chance = appearances[i].numSeed7 / SIMS;
 		let seed6Chance = appearances[i].numSeed6 / SIMS;
 		let seed5Chance = appearances[i].numSeed5 / SIMS;
@@ -1149,31 +1141,31 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		let makeSbChance = appearances[i].numMakeSb / SIMS;
 		let winSbChance = appearances[i].numWinSb / SIMS;
 
-		if (seed7MagicNumber > 0 && seed7Chance === 0) {
+		if (seed7Chance === 0 && team.getMagicNumber(conference[6], GAMES_PER_SEASON) > 0) {
 			seed7Chance = 0.000001;
 		}
 
-		if (seed6MagicNumber > 0 && seed6Chance === 0) {
+		if (seed6Chance === 0 && team.getMagicNumber(conference[5], GAMES_PER_SEASON) > 0) {
 			seed6Chance = 0.000001;
 		}
 
-		if (seed5MagicNumber > 0 && seed5Chance === 0) {
+		if (seed5Chance === 0 && team.getMagicNumber(conference[4], GAMES_PER_SEASON) > 0) {
 			seed5Chance = 0.000001;
 		}
 
-		if (seed4MagicNumber > 0 && seed4Chance === 0) {
+		if (seed4Chance === 0 && team.getMagicNumber(conference[3], GAMES_PER_SEASON) > 0) {
 			seed4Chance = 0.000001;
 		}
 
-		if (seed3MagicNumber > 0 && seed3Chance === 0) {
+		if (seed3Chance === 0 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0) {
 			seed3Chance = 0.000001;
 		}
 
-		if (seed2MagicNumber > 0 && seed2Chance === 0) {
+		if (seed2Chance === 0 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0) {
 			seed2Chance = 0.000001;
 		}
 
-		if (seed1MagicNumber > 0 && seed1Chance === 0) {
+		if (seed1Chance === 0 && team.getMagicNumber(conference[0], GAMES_PER_SEASON) > 0) {
 			seed1Chance = 0.000001;
 		}
 
