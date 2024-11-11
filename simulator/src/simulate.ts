@@ -1143,30 +1143,44 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 
 		if (seed7Chance === 0 && team.getMagicNumber(conference[6], GAMES_PER_SEASON) > 0) {
 			seed7Chance = 0.000001;
+		} else if (seed7Chance === 1 && team.getMagicNumber(conference[6], GAMES_PER_SEASON) > 0) {
+			seed7Chance = 0.999999;
 		}
 
 		if (seed6Chance === 0 && team.getMagicNumber(conference[5], GAMES_PER_SEASON) > 0) {
 			seed6Chance = 0.000001;
+		} else if (seed6Chance === 1 && team.getMagicNumber(conference[5], GAMES_PER_SEASON) > 0) {
+			seed6Chance = 0.999999;
 		}
 
 		if (seed5Chance === 0 && team.getMagicNumber(conference[4], GAMES_PER_SEASON) > 0) {
 			seed5Chance = 0.000001;
+		} else if (seed5Chance === 1 && team.getMagicNumber(conference[4], GAMES_PER_SEASON) > 0) {
+			seed5Chance = 0.999999;
 		}
 
 		if (seed4Chance === 0 && team.getMagicNumber(conference[3], GAMES_PER_SEASON) > 0) {
 			seed4Chance = 0.000001;
+		} else if (seed4Chance === 1 && team.getMagicNumber(conference[3], GAMES_PER_SEASON) > 0) {
+			seed4Chance = 0.999999;
 		}
 
 		if (seed3Chance === 0 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0) {
 			seed3Chance = 0.000001;
+		} else if (seed3Chance === 1 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0) {
+			seed3Chance = 0.999999;
 		}
 
 		if (seed2Chance === 0 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0) {
 			seed2Chance = 0.000001;
+		} else if (seed2Chance === 1 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0) {
+			seed2Chance = 0.999999;
 		}
 
 		if (seed1Chance === 0 && team.getMagicNumber(conference[0], GAMES_PER_SEASON) > 0) {
 			seed1Chance = 0.000001;
+		} else if (seed1Chance === 1 && team.getMagicNumber(conference[0], GAMES_PER_SEASON) > 0) {
+			seed1Chance = 0.999999;
 		}
 
 		if (makeDivChance === 0 && seed7Chance > 0 && seed7Chance < 1) {
