@@ -1125,6 +1125,7 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		if (team === undefined) continue;
 		const conference = conferences.find(c => c.some(t => t.getConferenceId() === team.getConferenceId()));
 		if (conference === undefined) continue;
+		const division = conference.filter(t => t.getDivisionId() === team.getDivisionId());
 
 		let seed7Chance = appearances[i].numSeed7 / SIMS;
 		let seed6Chance = appearances[i].numSeed6 / SIMS;
@@ -1159,21 +1160,21 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 			seed5Chance = 0.999999;
 		}
 
-		if (seed4Chance === 0 && team.getMagicNumber(conference[3], GAMES_PER_SEASON) > 0) {
+		if (seed4Chance === 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
 			seed4Chance = 0.000001;
-		} else if (seed4Chance === 1 && team.getMagicNumber(conference[3], GAMES_PER_SEASON) > 0) {
+		} else if (seed4Chance === 1 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
 			seed4Chance = 0.999999;
 		}
 
-		if (seed3Chance === 0 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0) {
+		if (seed3Chance === 0 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
 			seed3Chance = 0.000001;
-		} else if (seed3Chance === 1 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0) {
+		} else if (seed3Chance === 1 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
 			seed3Chance = 0.999999;
 		}
 
-		if (seed2Chance === 0 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0) {
+		if (seed2Chance === 0 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
 			seed2Chance = 0.000001;
-		} else if (seed2Chance === 1 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0) {
+		} else if (seed2Chance === 1 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
 			seed2Chance = 0.999999;
 		}
 
