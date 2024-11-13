@@ -1224,7 +1224,7 @@ function adjustForMarginOfError(original: number, next: number, total: number): 
  * @param team          The team whose chance is being checked.
  * @param opponent      The opponent team being checked against.
  * @param opponent2     The second opponent team being checked against, if applicable.
- * @returns 0.000001 if the simulated chance was 0 but mathematically shouldn't be, or 0.999999 if the simulated chance was 1 but mathematically shouldn't be; {@link original} otherwise.
+ * @returns 0.5 / SIMS if the simulated chance was 0 but mathematically shouldn't be; 1 - (0.5 / SIMS) if the simulated chance was 1 but mathematically shouldn't be; {@link original} otherwise.
  */
 function correctForEliminatedOrClinched (
 	original: number,
@@ -1234,9 +1234,9 @@ function correctForEliminatedOrClinched (
 	opponent2: SimTeam = opponent
 ): number {
 	if (original === 0 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason))
-		return 0.000001;
+		return 0.5 / SIMS;
 	if (original === 1 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason))
-		return 0.999999;
+		return 1 - (0.5 / SIMS);
 	return original;
 }
 
@@ -1244,9 +1244,9 @@ function correctForEliminatedOrClinched (
  * Corrects a playoff chance to be non-0 when incorrectly simulated to be 0.
  * @param original    The simulated chance to be checked.
  * @param floorChance The relevant chance that, if between 0 and 1 (non-inclusive), indicates that {@link original} should not be 0.
- * @returns 0.000001 if the simulated chance was 0 but mathematically shouldn't be; {@link original} otherwise.
+ * @returns 0.5 / SIMS if the simulated chance was 0 but mathematically shouldn't be; {@link original} otherwise.
  */
 function correctForEliminated (original: number, floorChance: number): number {
-	if (original === 0 && floorChance > 0 && floorChance < 1) return 0.000001;
+	if (original === 0 && floorChance > 0 && floorChance < 1) return 0.5 / SIMS;
 	return original;
 }
