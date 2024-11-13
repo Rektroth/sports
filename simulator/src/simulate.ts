@@ -1187,12 +1187,12 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 				homeMakeSuperBowl: adjustForMarginOfError(makeSbChance, gameAppearance.numMakeSbHome / numHomeWins, numHomeWins),
 				homeWinSuperBowl: adjustForMarginOfError(winSbChance, gameAppearance.numWinSbHome / numHomeWins, numHomeWins),
 				awaySeed7: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed7Away / numAwayWins, numAwayWins),
-				awaySeed6: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed6Away / numAwayWins, numAwayWins),
-				awaySeed5: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed5Away / numAwayWins, numAwayWins),
-				awaySeed4: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed4Away / numAwayWins, numAwayWins),
-				awaySeed3: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed3Away / numAwayWins, numAwayWins),
-				awaySeed2: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed2Away / numAwayWins, numAwayWins),
-				awaySeed1: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed1Away / numAwayWins, numAwayWins),
+				awaySeed6: adjustForMarginOfError(seed6Chance, gameAppearance.numSeed6Away / numAwayWins, numAwayWins),
+				awaySeed5: adjustForMarginOfError(seed5Chance, gameAppearance.numSeed5Away / numAwayWins, numAwayWins),
+				awaySeed4: adjustForMarginOfError(seed4Chance, gameAppearance.numSeed4Away / numAwayWins, numAwayWins),
+				awaySeed3: adjustForMarginOfError(seed3Chance, gameAppearance.numSeed3Away / numAwayWins, numAwayWins),
+				awaySeed2: adjustForMarginOfError(seed2Chance, gameAppearance.numSeed2Away / numAwayWins, numAwayWins),
+				awaySeed1: adjustForMarginOfError(seed1Chance, gameAppearance.numSeed1Away / numAwayWins, numAwayWins),
 				awayHostWildCard: adjustForMarginOfError(hostWcChance, gameAppearance.numHostWcAway / numAwayWins, numAwayWins),
 				awayHostDivision: adjustForMarginOfError(hostDivChance, gameAppearance.numHostDivAway / numAwayWins, numAwayWins),
 				awayHostConference: adjustForMarginOfError(hostConfChance, gameAppearance.numHostConfAway / numAwayWins, numAwayWins),
@@ -1214,8 +1214,7 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
  */
 function adjustForMarginOfError(original: number, next: number, total: number): number {
 	const moe = CONFIDENCE_INTERVAL * Math.sqrt((next * (1 - next)) / total);
-	if (Math.abs(next - original) > moe) return next;
-	return original;
+	return Math.abs(next - original) > moe ? next : original;
 }
 
 /**
