@@ -71,26 +71,50 @@ export default class SimTeam {
 		this.lastGame = structuredClone(lastGame);
 	}
 
+	/**
+	 * Gets the team's ID.
+	 * @returns The team's ID.
+	 */
 	getId(): number {
 		return this.id;
 	}
 
+	/**
+	 * Gets the ID of the team's division
+	 * @returns The ID of the team's division.
+	 */
 	getDivisionId(): number {
 		return this.divisionId;
 	}
 
+	/**
+	 * Gets the ID of the team's conference.
+	 * @returns The ID of the team's conference.
+	 */
 	getConferenceId(): number {
 		return this.conferenceId;
 	}
 
+	/**
+	 * Gets the IDs of the opponents the team has won games against.
+	 * @returns The IDs of the opponents the team has won games against.
+	 */
 	getWinOpponents (): number[] {
 		return this.winOpponents;
 	}
 
+	/**
+	 * Gets the IDs of the opponents the team has lost games to.
+	 * @returns The IDs of the opponents the team has lost games to.
+	 */
 	getLossOpponents (): number[] {
 		return this.lossOpponents;
 	}
 
+	/**
+	 * Gets the IDs of the opponents the team has tied games with.
+	 * @returns The IDs of the opponents the team has tied games with.
+	 */
 	getTieOpponents (): number[] {
 		return this.tieOpponents;
 	}

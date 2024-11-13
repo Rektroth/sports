@@ -1127,78 +1127,20 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		if (conference === undefined) continue;
 		const division = conference.filter(t => t.getDivisionId() === team.getDivisionId());
 
-		let seed7Chance = appearances[i].numSeed7 / SIMS;
-		let seed6Chance = appearances[i].numSeed6 / SIMS;
-		let seed5Chance = appearances[i].numSeed5 / SIMS;
-		let seed4Chance = appearances[i].numSeed4 / SIMS;
-		let seed3Chance = appearances[i].numSeed3 / SIMS;
-		let seed2Chance = appearances[i].numSeed2 / SIMS;
-		let seed1Chance = appearances[i].numSeed1 / SIMS;
+		const seed7Chance = correctForEliminatedOrClinched(appearances[i].numSeed7 / SIMS, GAMES_PER_SEASON, team, conference[6]);
+		const seed6Chance = correctForEliminatedOrClinched(appearances[i].numSeed6 / SIMS, GAMES_PER_SEASON, team, conference[5]);
+		const seed5Chance = correctForEliminatedOrClinched(appearances[i].numSeed5 / SIMS, GAMES_PER_SEASON, team, conference[4]);
+		const seed4Chance = correctForEliminatedOrClinched(appearances[i].numSeed4 / SIMS, GAMES_PER_SEASON, team, conference[3], division[0]);
+		const seed3Chance = correctForEliminatedOrClinched(appearances[i].numSeed3 / SIMS, GAMES_PER_SEASON, team, conference[2], division[0]);
+		const seed2Chance = correctForEliminatedOrClinched(appearances[i].numSeed2 / SIMS, GAMES_PER_SEASON, team, conference[1], division[0]);
+		const seed1Chance = correctForEliminatedOrClinched(appearances[i].numSeed1 / SIMS, GAMES_PER_SEASON, team, conference[0], division[0]);
 		const hostWcChance = appearances[i].numHostWc / SIMS;
 		const hostDivChance = appearances[i].numHostDiv / SIMS;
 		const hostConfChance = appearances[i].numHostConf / SIMS;
-		let makeDivChance = appearances[i].numMakeDiv / SIMS;
-		let makeConfChance = appearances[i].numMakeConf / SIMS;
-		let makeSbChance = appearances[i].numMakeSb / SIMS;
-		let winSbChance = appearances[i].numWinSb / SIMS;
-
-		if (seed7Chance === 0 && team.getMagicNumber(conference[6], GAMES_PER_SEASON) > 0) {
-			seed7Chance = 0.000001;
-		} else if (seed7Chance === 1 && team.getMagicNumber(conference[6], GAMES_PER_SEASON) > 0) {
-			seed7Chance = 0.999999;
-		}
-
-		if (seed6Chance === 0 && team.getMagicNumber(conference[5], GAMES_PER_SEASON) > 0) {
-			seed6Chance = 0.000001;
-		} else if (seed6Chance === 1 && team.getMagicNumber(conference[5], GAMES_PER_SEASON) > 0) {
-			seed6Chance = 0.999999;
-		}
-
-		if (seed5Chance === 0 && team.getMagicNumber(conference[4], GAMES_PER_SEASON) > 0) {
-			seed5Chance = 0.000001;
-		} else if (seed5Chance === 1 && team.getMagicNumber(conference[4], GAMES_PER_SEASON) > 0) {
-			seed5Chance = 0.999999;
-		}
-
-		if (seed4Chance === 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
-			seed4Chance = 0.000001;
-		} else if (seed4Chance === 1 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
-			seed4Chance = 0.999999;
-		}
-
-		if (seed3Chance === 0 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
-			seed3Chance = 0.000001;
-		} else if (seed3Chance === 1 && team.getMagicNumber(conference[2], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
-			seed3Chance = 0.999999;
-		}
-
-		if (seed2Chance === 0 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
-			seed2Chance = 0.000001;
-		} else if (seed2Chance === 1 && team.getMagicNumber(conference[1], GAMES_PER_SEASON) > 0 && team.getMagicNumber(division[0], GAMES_PER_SEASON) > 0) {
-			seed2Chance = 0.999999;
-		}
-
-		if (seed1Chance === 0 && team.getMagicNumber(conference[0], GAMES_PER_SEASON) > 0) {
-			seed1Chance = 0.000001;
-		} else if (seed1Chance === 1 && team.getMagicNumber(conference[0], GAMES_PER_SEASON) > 0) {
-			seed1Chance = 0.999999;
-		}
-
-		if (makeDivChance === 0 && seed7Chance > 0 && seed7Chance < 1) {
-			makeDivChance = 0.000001;
-		}
-
-		if (makeConfChance === 0 && makeDivChance > 0 && makeDivChance < 1) {
-			makeConfChance = 0.000001;
-		}
-
-		if (makeSbChance === 0 && makeConfChance > 0 && makeConfChance < 1) {
-			makeSbChance = 0.000001;
-		}
-
-		if (winSbChance === 0 && makeSbChance > 0 && makeSbChance < 1) {
-			winSbChance = 0.000001;
-		}
+		const makeDivChance = correctForEliminated(appearances[i].numMakeDiv / SIMS, seed7Chance);
+		const makeConfChance = correctForEliminated(appearances[i].numMakeConf / SIMS, makeDivChance);
+		const makeSbChance = correctForEliminated(appearances[i].numMakeSb / SIMS, makeConfChance);
+		const winSbChance = correctForEliminated(appearances[i].numWinSb / SIMS, makeSbChance);
 
 		await teamChancesRepo.save({
 			teamId: appearances[i].teamId,
@@ -1226,103 +1168,85 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 			const numHomeWins = gameAppearances[j].homeWins;
 			const numAwayWins = gameAppearances[j].awayWins;
 
-			const homeSeed7Chance = gameAppearances[j].numSeed7Home / numHomeWins;
-			const homeSeed6Chance = gameAppearances[j].numSeed6Home / numHomeWins;
-			const homeSeed5Chance = gameAppearances[j].numSeed5Home / numHomeWins;
-			const homeSeed4Chance = gameAppearances[j].numSeed4Home / numHomeWins;
-			const homeSeed3Chance = gameAppearances[j].numSeed3Home / numHomeWins;
-			const homeSeed2Chance = gameAppearances[j].numSeed2Home / numHomeWins;
-			const homeSeed1Chance = gameAppearances[j].numSeed1Home / numHomeWins;
-			let homeMakeDivChance = gameAppearances[j].numMakeDivHome / numHomeWins;
-			let homeMakeConfChance = gameAppearances[j].numMakeConfHome / numHomeWins;
-			let homeMakeSbChance = gameAppearances[j].numMakeSbHome / numHomeWins;
-			let homeWinSbChance = gameAppearances[j].numWinSbHome / numHomeWins;
-			const homeHostWcChance = gameAppearances[j].numHostWcHome / numHomeWins;
-			const homeHostDivChance = gameAppearances[j].numHostDivHome / numHomeWins;
-			const homeHostConfChance = gameAppearances[j].numHostConfHome / numHomeWins;
-			const awaySeed7Chance = gameAppearances[j].numSeed7Away / numAwayWins;
-			const awaySeed6Chance = gameAppearances[j].numSeed6Away / numAwayWins;
-			const awaySeed5Chance = gameAppearances[j].numSeed5Away / numAwayWins;
-			const awaySeed4Chance = gameAppearances[j].numSeed4Away / numAwayWins;
-			const awaySeed3Chance = gameAppearances[j].numSeed3Away / numAwayWins;
-			const awaySeed2Chance = gameAppearances[j].numSeed2Away / numAwayWins;
-			const awaySeed1Chance = gameAppearances[j].numSeed1Away / numAwayWins;
-			let awayMakeDivChance = gameAppearances[j].numMakeDivAway / numAwayWins;
-			let awayMakeConfChance = gameAppearances[j].numMakeConfAway / numAwayWins;
-			let awayMakeSbChance = gameAppearances[j].numMakeSbAway / numAwayWins;
-			let awayWinSbChance = gameAppearances[j].numWinSbAway / numAwayWins;
-			const awayHostWcChance = gameAppearances[j].numHostWcAway / numAwayWins;
-			const awayHostDivChance = gameAppearances[j].numHostDivAway / numAwayWins;
-			const awayHostConfChance = gameAppearances[j].numHostConfAway / numAwayWins;
-
-			if (homeMakeDivChance === 0 && homeSeed7Chance > 0 && homeSeed7Chance < 1) {
-				homeMakeDivChance = 0.000001;
-			}
-	
-			if (homeMakeConfChance === 0 && homeMakeDivChance > 0 && homeMakeDivChance < 1) {
-				homeMakeConfChance = 0.000001;
-			}
-	
-			if (homeMakeSbChance === 0 && homeMakeConfChance > 0 && homeMakeConfChance < 1) {
-				homeMakeSbChance = 0.000001;
-			}
-	
-			if (homeWinSbChance === 0 && homeMakeSbChance > 0 && homeMakeSbChance < 1) {
-				homeWinSbChance = 0.000001;
-			}
-
-			if (awayMakeDivChance === 0 && awaySeed7Chance > 0 && awaySeed7Chance < 1) {
-				awayMakeDivChance = 0.000001;
-			}
-	
-			if (awayMakeConfChance === 0 && awayMakeDivChance > 0 && awayMakeDivChance < 1) {
-				awayMakeConfChance = 0.000001;
-			}
-	
-			if (awayMakeSbChance === 0 && awayMakeConfChance > 0 && awayMakeConfChance < 1) {
-				awayMakeSbChance = 0.000001;
-			}
-	
-			if (awayWinSbChance === 0 && awayMakeSbChance > 0 && awayMakeSbChance < 1) {
-				awayWinSbChance = 0.000001;
-			}
-
 			await teamChancesByGameRepo.save({
 				gameId: gameAppearances[j].gameId,
 				teamId: appearances[i].teamId,
-				homeSeed7: (Math.abs(homeSeed7Chance - seed7Chance) > marginOfError(homeSeed7Chance, numHomeWins)) ? homeSeed7Chance : seed7Chance,
-				homeSeed6: (Math.abs(homeSeed6Chance - seed6Chance) > marginOfError(homeSeed6Chance, numHomeWins)) ? homeSeed6Chance : seed6Chance,
-				homeSeed5: (Math.abs(homeSeed5Chance - seed5Chance) > marginOfError(homeSeed5Chance, numHomeWins)) ? homeSeed5Chance : seed5Chance,
-				homeSeed4: (Math.abs(homeSeed4Chance - seed4Chance) > marginOfError(homeSeed4Chance, numHomeWins)) ? homeSeed4Chance : seed4Chance,
-				homeSeed3: (Math.abs(homeSeed3Chance - seed3Chance) > marginOfError(homeSeed3Chance, numHomeWins)) ? homeSeed3Chance : seed3Chance,
-				homeSeed2: (Math.abs(homeSeed2Chance - seed2Chance) > marginOfError(homeSeed2Chance, numHomeWins)) ? homeSeed2Chance : seed2Chance,
-				homeSeed1: (Math.abs(homeSeed1Chance - seed1Chance) > marginOfError(homeSeed1Chance, numHomeWins)) ? homeSeed1Chance : seed1Chance,
-				homeHostWildCard: (Math.abs(homeHostWcChance - hostWcChance) > marginOfError(homeHostWcChance, numHomeWins)) ? homeHostWcChance : hostWcChance,
-				homeHostDivision: (Math.abs(homeHostDivChance - hostDivChance) > marginOfError(homeHostDivChance, numHomeWins)) ? homeHostDivChance : hostDivChance,
-				homeHostConference: (Math.abs(homeHostConfChance - hostConfChance) > marginOfError(homeHostConfChance, numHomeWins)) ? homeHostConfChance : hostConfChance,
-				homeMakeDivision: (Math.abs(homeMakeDivChance - makeDivChance) > marginOfError(homeMakeDivChance, numHomeWins)) ? homeMakeDivChance : makeDivChance,
-				homeMakeConference: (Math.abs(homeMakeConfChance - makeConfChance) > marginOfError(homeMakeConfChance, numHomeWins)) ? homeMakeConfChance : makeConfChance,
-				homeMakeSuperBowl: (Math.abs(homeMakeSbChance - makeSbChance) > marginOfError(homeMakeSbChance, numHomeWins)) ? homeMakeSbChance : makeSbChance,
-				homeWinSuperBowl: (Math.abs(homeWinSbChance - winSbChance) > marginOfError(homeWinSbChance, numHomeWins)) ? homeWinSbChance : winSbChance,
-				awaySeed7: (Math.abs(awaySeed7Chance - seed7Chance) > marginOfError(awaySeed7Chance, numAwayWins)) ? awaySeed7Chance : seed7Chance,
-				awaySeed6: (Math.abs(awaySeed6Chance - seed6Chance) > marginOfError(awaySeed6Chance, numAwayWins)) ? awaySeed6Chance : seed6Chance,
-				awaySeed5: (Math.abs(awaySeed5Chance - seed5Chance) > marginOfError(awaySeed5Chance, numAwayWins)) ? awaySeed5Chance : seed5Chance,
-				awaySeed4: (Math.abs(awaySeed4Chance - seed4Chance) > marginOfError(awaySeed4Chance, numAwayWins)) ? awaySeed4Chance : seed4Chance,
-				awaySeed3: (Math.abs(awaySeed3Chance - seed3Chance) > marginOfError(awaySeed3Chance, numAwayWins)) ? awaySeed3Chance : seed3Chance,
-				awaySeed2: (Math.abs(awaySeed2Chance - seed2Chance) > marginOfError(awaySeed2Chance, numAwayWins)) ? awaySeed2Chance : seed2Chance,
-				awaySeed1: (Math.abs(awaySeed1Chance - seed1Chance) > marginOfError(awaySeed1Chance, numAwayWins)) ? awaySeed1Chance : seed1Chance,
-				awayHostWildCard: (Math.abs(awayHostWcChance - hostWcChance) > marginOfError(awayHostWcChance, numAwayWins)) ? awayHostWcChance : hostWcChance,
-				awayHostDivision: (Math.abs(awayHostDivChance - hostDivChance) > marginOfError(awayHostDivChance, numAwayWins)) ? awayHostDivChance : hostDivChance,
-				awayHostConference: (Math.abs(awayHostConfChance - hostConfChance) > marginOfError(awayHostConfChance, numAwayWins)) ? awayHostConfChance : hostConfChance,
-				awayMakeDivision: (Math.abs(awayMakeDivChance - makeDivChance) > marginOfError(awayMakeDivChance, numAwayWins)) ? awayMakeDivChance : makeDivChance,
-				awayMakeConference: (Math.abs(awayMakeConfChance - makeConfChance) > marginOfError(awayMakeConfChance, numAwayWins)) ? awayMakeConfChance : makeConfChance,
-				awayMakeSuperBowl: (Math.abs(awayMakeSbChance - makeSbChance) > marginOfError(awayMakeSbChance, numAwayWins)) ? awayMakeSbChance : makeSbChance,
-				awayWinSuperBowl: (Math.abs(awayWinSbChance - winSbChance) > marginOfError(awayWinSbChance, numAwayWins)) ? awayWinSbChance : winSbChance,
+				homeSeed7: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed7Home / numHomeWins, numHomeWins),
+				homeSeed6: adjustForMarginOfError(seed6Chance, gameAppearances[j].numSeed6Home / numHomeWins, numHomeWins),
+				homeSeed5: adjustForMarginOfError(seed5Chance, gameAppearances[j].numSeed5Home / numHomeWins, numHomeWins),
+				homeSeed4: adjustForMarginOfError(seed4Chance, gameAppearances[j].numSeed4Home / numHomeWins, numHomeWins),
+				homeSeed3: adjustForMarginOfError(seed3Chance, gameAppearances[j].numSeed3Home / numHomeWins, numHomeWins),
+				homeSeed2: adjustForMarginOfError(seed2Chance, gameAppearances[j].numSeed2Home / numHomeWins, numHomeWins),
+				homeSeed1: adjustForMarginOfError(seed1Chance, gameAppearances[j].numSeed1Home / numHomeWins, numHomeWins),
+				homeHostWildCard: adjustForMarginOfError(hostWcChance, gameAppearances[j].numHostWcHome / numHomeWins, numHomeWins),
+				homeHostDivision: adjustForMarginOfError(hostDivChance, gameAppearances[j].numHostDivHome / numHomeWins, numHomeWins),
+				homeHostConference: adjustForMarginOfError(hostConfChance, gameAppearances[j].numHostConfHome / numHomeWins, numHomeWins),
+				homeMakeDivision: adjustForMarginOfError(makeDivChance, gameAppearances[j].numMakeDivHome / numHomeWins, numHomeWins),
+				homeMakeConference: adjustForMarginOfError(makeConfChance, gameAppearances[j].numMakeConfHome / numHomeWins, numHomeWins),
+				homeMakeSuperBowl: adjustForMarginOfError(makeSbChance, gameAppearances[j].numMakeSbHome / numHomeWins, numHomeWins),
+				homeWinSuperBowl: adjustForMarginOfError(winSbChance, gameAppearances[j].numWinSbHome / numHomeWins, numHomeWins),
+				awaySeed7: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed7Away / numAwayWins, numAwayWins),
+				awaySeed6: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed6Away / numAwayWins, numAwayWins),
+				awaySeed5: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed5Away / numAwayWins, numAwayWins),
+				awaySeed4: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed4Away / numAwayWins, numAwayWins),
+				awaySeed3: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed3Away / numAwayWins, numAwayWins),
+				awaySeed2: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed2Away / numAwayWins, numAwayWins),
+				awaySeed1: adjustForMarginOfError(seed7Chance, gameAppearances[j].numSeed1Away / numAwayWins, numAwayWins),
+				awayHostWildCard: adjustForMarginOfError(hostWcChance, gameAppearances[j].numHostWcAway / numAwayWins, numAwayWins),
+				awayHostDivision: adjustForMarginOfError(hostDivChance, gameAppearances[j].numHostDivAway / numAwayWins, numAwayWins),
+				awayHostConference: adjustForMarginOfError(hostConfChance, gameAppearances[j].numHostConfAway / numAwayWins, numAwayWins),
+				awayMakeDivision: adjustForMarginOfError(makeDivChance, gameAppearances[j].numMakeDivAway / numAwayWins, numAwayWins),
+				awayMakeConference: adjustForMarginOfError(makeConfChance, gameAppearances[j].numMakeConfAway / numAwayWins, numAwayWins),
+				awayMakeSuperBowl: adjustForMarginOfError(makeSbChance, gameAppearances[j].numMakeSbAway / numAwayWins, numAwayWins),
+				awayWinSuperBowl: adjustForMarginOfError(winSbChance, gameAppearances[j].numWinSbAway / numAwayWins, numAwayWins),
 			});
 		}
 	}
 }
 
-function marginOfError (p: number, n: number): number {
-	return CONFIDENCE_INTERVAL * Math.sqrt((p * (1 - p)) / n);
+/**
+ * Adjusts a simulated playoff chance 
+ * @param original The original simulated playoff chance.
+ * @param next     The new simulated playoff chance for specific conditions.
+ * @param total    The total number of relevant simulations.
+ * @returns The value of {@link next} if its outside the estimated margin of error; @{link original} otherwise.
+ */
+function adjustForMarginOfError(original: number, next: number, total: number): number {
+	const moe = CONFIDENCE_INTERVAL * Math.sqrt((next * (1 - next)) / total);
+	if (Math.abs(next - original) > moe) return next;
+	return original;
+}
+
+/**
+ * Corrects a playoff chance to be a value close to but between 0 and/or 1 when incorrectly simulated to be 0 or 1.
+ * @param original      The simulated chance to be checked.
+ * @param gamesInSeason Total number of games the teams play in the season.
+ * @param team          The team whose chance is being checked.
+ * @param opponent      The opponent team being checked against.
+ * @param opponent2     The second opponent team being checked against, if applicable.
+ * @returns 0.000001 if the simulated chance was 0 but mathematically shouldn't be, or 0.999999 if the simulated chance was 1 but mathematically shouldn't be; {@link original} otherwise.
+ */
+function correctForEliminatedOrClinched (
+	original: number,
+	gamesInSeason: number,
+	team: SimTeam,
+	opponent:SimTeam,
+	opponent2: SimTeam = opponent
+): number {
+	if (original === 0 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason))
+		return 0.000001;
+	if (original === 1 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason))
+		return 0.999999;
+	return original;
+}
+
+/**
+ * Corrects a playoff chance to be non-0 when incorrectly simulated to be 0.
+ * @param original    The simulated chance to be checked.
+ * @param floorChance The relevant chance that, if between 0 and 1 (non-inclusive), indicates that {@link original} should not be 0.
+ * @returns 0.000001 if the simulated chance was 0 but mathematically shouldn't be; {@link original} otherwise.
+ */
+function correctForEliminated (original: number, floorChance: number): number {
+	if (original === 0 && floorChance > 0 && floorChance < 1) return 0.000001;
+	return original;
 }
