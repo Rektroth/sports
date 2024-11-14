@@ -37,6 +37,34 @@ class TeamAppearances {
 		this.teamId = id;
 		this.gameAppearances = gameIds.map(gi => new GameAppearances(gi));
 	}
+
+	getMinSeed7() {
+		return this.numSeed7;
+	}
+
+	getMinSeed6() {
+		return this.getMinSeed7() + this.numSeed6;
+	}
+
+	getMinSeed5() {
+		return this.getMinSeed6() + this.numSeed5;
+	}
+
+	getMinSeed4() {
+		return this.getMinSeed5() + this.numSeed4;
+	}
+
+	getMinSeed3() {
+		return this.getMinSeed4() + this.numSeed3;
+	}
+
+	getMinSeed2() {
+		return this.getMinSeed3() + this.numSeed2;
+	}
+
+	getMinSeed1() {
+		return this.getMinSeed2() + this.numSeed1;
+	}
 }
 
 class GameAppearances {
@@ -533,142 +561,133 @@ function simulate (
 				continue;
 			}
 
-			if (j < 1) {
-				appearance.numSeed1++;
+			switch (j) {
+				case 0:
+					appearance.numSeed1++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed1Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed1Home++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed1Away++;
-						}
-					}
-				}
-			}
-
-			if (j < 2) {
-				appearance.numSeed2++;
-
-				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed2Home++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed2Away++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed1Away++;
+							}
 						}
 					}
-				}
-			}
+					break;
+				case 1:
+					appearance.numSeed2++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-			if (j < 3) {
-				appearance.numSeed3++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed2Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed3Home++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed3Away++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed2Away++;
+							}
 						}
 					}
-				}
-			}
+					break;
+				case 2:
+					appearance.numSeed3++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-			if (j < 4) {
-				appearance.numSeed4++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed3Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed4Home++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed4Away++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed3Away++;
+							}
 						}
 					}
-				}
-			}
+					break;
+				case 3:
+					appearance.numSeed4++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-			if (j < 5) {
-				appearance.numSeed5++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed4Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed5Home++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed5Away++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed4Away++;
+							}
 						}
 					}
-				}
-			}
+					break;
+				case 4:
+					appearance.numSeed5++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-			if (j < 6) {
-				appearance.numSeed6++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed5Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed6Home++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numSeed6Away++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed5Away++;
+							}
 						}
 					}
-				}
-			}
+					break;
+				case 5:
+					appearance.numSeed6++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-			appearance.numSeed7++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed6Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-			for (let k = 0; k < soonGames.length; k++) {
-				if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-					if (gameAppearance !== undefined) {
-						gameAppearance.numSeed7Home++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed6Away++;
+							}
+						}
 					}
-				} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+					break;
+				case 6:
+					appearance.numSeed7++;
+					for (let k = 0; k < soonGames.length; k++) {
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-					if (gameAppearance !== undefined) {
-						gameAppearance.numSeed7Away++;
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed7Home++;
+							}
+						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+
+							if (gameAppearance !== undefined) {
+								gameAppearance.numSeed7Away++;
+							}
+						}
 					}
-				}
+					break;
 			}
 		}
 
@@ -1127,13 +1146,13 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		if (conference === undefined) continue;
 		const division = conference.filter(t => t.getDivisionId() === team.getDivisionId());
 
-		const seed7Chance = correctForEliminatedOrClinched(appearance.numSeed7 / SIMS, GAMES_PER_SEASON, team, conference[6]);
-		const seed6Chance = correctForEliminatedOrClinched(appearance.numSeed6 / SIMS, GAMES_PER_SEASON, team, conference[5]);
-		const seed5Chance = correctForEliminatedOrClinched(appearance.numSeed5 / SIMS, GAMES_PER_SEASON, team, conference[4]);
-		const seed4Chance = correctForEliminatedOrClinched(appearance.numSeed4 / SIMS, GAMES_PER_SEASON, team, conference[3], division[0]);
-		const seed3Chance = correctForEliminatedOrClinched(appearance.numSeed3 / SIMS, GAMES_PER_SEASON, team, conference[2], division[0]);
-		const seed2Chance = correctForEliminatedOrClinched(appearance.numSeed2 / SIMS, GAMES_PER_SEASON, team, conference[1], division[0]);
-		const seed1Chance = correctForEliminatedOrClinched(appearance.numSeed1 / SIMS, GAMES_PER_SEASON, team, conference[0], division[0]);
+		const seed7Chance = correctForEliminatedOrClinched(appearance.getMinSeed7() / SIMS, GAMES_PER_SEASON, team, conference[6]);
+		const seed6Chance = correctForEliminatedOrClinched(appearance.getMinSeed6() / SIMS, GAMES_PER_SEASON, team, conference[5]);
+		const seed5Chance = correctForEliminatedOrClinched(appearance.getMinSeed5() / SIMS, GAMES_PER_SEASON, team, conference[4]);
+		const seed4Chance = correctForEliminatedOrClinched(appearance.getMinSeed4() / SIMS, GAMES_PER_SEASON, team, conference[3], division[0]);
+		const seed3Chance = correctForEliminatedOrClinched(appearance.getMinSeed3() / SIMS, GAMES_PER_SEASON, team, conference[2], division[0]);
+		const seed2Chance = correctForEliminatedOrClinched(appearance.getMinSeed2() / SIMS, GAMES_PER_SEASON, team, conference[1], division[0]);
+		const seed1Chance = correctForEliminatedOrClinched(appearance.getMinSeed1() / SIMS, GAMES_PER_SEASON, team, conference[0], division[0]);
 		const makeDivChance = correctForEliminated(appearance.numMakeDiv / SIMS, seed7Chance);
 		const makeConfChance = correctForEliminated(appearance.numMakeConf / SIMS, makeDivChance);
 		const makeSbChance = correctForEliminated(appearance.numMakeSb / SIMS, makeConfChance);
