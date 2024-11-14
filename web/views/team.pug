@@ -19,7 +19,31 @@ block content
                 td.rec(colspan=2)= Math.round(team.elo)
         table.infobox.center
             tr.head
-                td(colspan=2).head= 'Seeding Probabilities'
+                td(colspan=2).head= 'Minimum Seeding Probabilities'
+            tr
+                td.head= 'Wild Card #3'
+                +pcttd(team.chances[0].seed7)
+            tr
+                td.head= 'Wild Card #2'
+                +pcttd(team.chances[0].seed6)
+            tr
+                td.head= 'Wild Card #1'
+                +pcttd(team.chances[0].seed5)
+            tr
+                td.head= 'Division Leader #4'
+                +pcttd(team.chances[0].seed4)
+            tr
+                td.head= 'Division Leader #3'
+                +pcttd(team.chances[0].seed3)
+            tr
+                td.head= 'Division Leader #2'
+                +pcttd(team.chances[0].seed2)
+            tr
+                td.head= 'Conference Leader'
+                +pcttd(team.chances[0].seed1)
+        table.infobox.center
+            tr.head
+                td(colspan=2).head= 'Individual Seeding Probabilities'
             tr
                 td.head= 'Wild Card #3'
                 +pcttd(team.chances[0].seed7)
