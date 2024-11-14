@@ -1134,13 +1134,13 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		const seed3Chance = correctForEliminatedOrClinched(appearance.numSeed3 / SIMS, GAMES_PER_SEASON, team, conference[2], division[0]);
 		const seed2Chance = correctForEliminatedOrClinched(appearance.numSeed2 / SIMS, GAMES_PER_SEASON, team, conference[1], division[0]);
 		const seed1Chance = correctForEliminatedOrClinched(appearance.numSeed1 / SIMS, GAMES_PER_SEASON, team, conference[0], division[0]);
-		const hostWcChance = appearance.numHostWc / SIMS;
-		const hostDivChance = appearance.numHostDiv / SIMS;
-		const hostConfChance = appearance.numHostConf / SIMS;
 		const makeDivChance = correctForEliminated(appearance.numMakeDiv / SIMS, seed7Chance);
 		const makeConfChance = correctForEliminated(appearance.numMakeConf / SIMS, makeDivChance);
 		const makeSbChance = correctForEliminated(appearance.numMakeSb / SIMS, makeConfChance);
 		const winSbChance = correctForEliminated(appearance.numWinSb / SIMS, makeSbChance);
+		const hostWcChance = seed1Chance === 1 ? 0 : correctForEliminated(appearance.numHostWc / SIMS, seed4Chance);
+		const hostDivChance = seed6Chance === 0 ? 0 : correctForEliminated(appearance.numHostDiv / SIMS, makeDivChance);
+		const hostConfChance = seed6Chance === 0 ? 0 : correctForEliminated(appearance.numHostConf / SIMS, makeConfChance);
 
 		await teamChancesRepo.save({
 			teamId: appearance.teamId,
