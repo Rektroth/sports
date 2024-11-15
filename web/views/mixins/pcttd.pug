@@ -1,11 +1,12 @@
-mixin pcttd(pct, hidden)
+mixin pcttd(pct, id)
     - let rndPct = Math.round(pct * 1000) / 10;
     - let str = String(rndPct);
     - str = pct < 0.001 && pct != 0 ? '<0.1' : str;
     - str = pct > 0.999 && pct != 1 ? '>99.9' : str;
     - str = rndPct % 1 == 0 && rndPct != 0 && rndPct != 100 ? str + '.0%' : str + '%';
-    - let redGreen = (192 * (1 - pct)) + 63
-    if hidden
-        td(style='background-color: rgb(' + redGreen + ', ' + redGreen + ', 255)').pct.probs-hidden#probs-playoffs= str
+    - let redBlue = (192 * (1 - pct)) + 63
+    - let green = (64 * (1 - pct)) + 191
+    if id != "probs-min-seeding"
+        td(id= id, style='background-color: rgb(' + redBlue + ',' + green + ',' + redBlue + ')').pct.probs-hidden= str
     else
-        td(style='background-color: rgb(' + redGreen + ', ' + redGreen + ', 255)').pct#probs-seeding= str
+        td(id= id, style='background-color: rgb(' + redBlue + ',' + green + ',' + redBlue + ')').pct= str

@@ -1,34 +1,39 @@
 extends templates/layout
 include mixins/pcttd
 block content
-    script(src='/js/probs.js')
-    select(id='probs', name='probs', onchange='changeProbs()')
-        option(value='seeding')= 'Seeding'
-        option(value='playoffs')= 'Playoffs'
     table.chances#teams-table
-        tr
-            td.head(colspan=2)
-                button(onclick='sortTeamNames()')= 'Team'
-            td.head(colspan=2)
-                button(onclick='sortDivisions()')= 'Division'
+        tr.head
+            td.border(colspan=6)
+                script(src='/js/probs.js')
+                select(id='probs', name='probs', onchange='changeProbs()')
+                    option(value='min-seeding')= 'Minimum Seeding'
+                    option(value='ind-seeding')= 'Individual Seeding'
+                    option(value='playoffs')= 'Playoff Performance'
+            td.head(colspan=7)= 'Simulations'
+        tr.head
+            td.head= 'Rank'
             td.head
                 button(onclick='sortElos()')= 'Elo'
+            td.head(colspan=2)
+                button(onclick='sortTeamNames()')= 'Team'
             td.head
-                button(onclick='sortRecords()')= 'Record'
-            td.head#probs-seeding
+                button(onclick='sortConferences()')= 'Conference'
+            td.head.border
+                button(onclick='sortDivisions()')= 'Division'
+            td.head#probs-min-seeding
                 button(onclick='sortTable(6)')= 'Wild Card #3'
-            td.head#probs-seeding
+            td.head#probs-min-seeding
                 button(onclick='sortTable(6)')= 'Wild Card #2'
-            td.head#probs-seeding
+            td.head#probs-min-seeding
                 button(onclick='sortTable(6)')= 'Wild Card #1'
-            td.head#probs-seeding
-                button(onclick='sortTable(6)')= 'Division Leader #4'
-            td.head#probs-seeding
-                button(onclick='sortTable(6)')= 'Division Leader #3'
-            td.head#probs-seeding
-                button(onclick='sortTable(6)')= 'Division Leader #2'
-            td.head#probs-seeding
-                button(onclick='sortTable(6)')= 'Conference Leader'
+            td.head#probs-min-seeding
+                button(onclick='sortTable(6)')= 'Div. Leader #4'
+            td.head#probs-min-seeding
+                button(onclick='sortTable(6)')= 'Div. Leader #3'
+            td.head#probs-min-seeding
+                button(onclick='sortTable(6)')= 'Div. Leader #2'
+            td.head#probs-min-seeding
+                button(onclick='sortTable(6)')= 'Conf. Leader'
             td.head#probs-playoffs.probs-hidden
                 button(onclick='sortTable(6)')= 'Host Wild Card Game'
             td.head#probs-playoffs.probs-hidden
@@ -45,26 +50,28 @@ block content
                 button(onclick='sortTable(6)')= 'Win Super Bowl'
         each team in teams
             tr
-                td.team(style='background-color:' + team.color1)
-                    img(src='../img/' + team.abbreviation.toLowerCase() + '.svg')
-                td.team(style='background-color:' + team.color1)
-                    a(href='/teams/' + team.id)= team.locality + ' ' + team.name
-                td.team(style='background-color:' + team.color1)
-                    img(src='../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
-                td.team(style='background-color:' + team.color1)= team.division.name.substring(4, 9)
+                td.rec= '32'
                 td.rec= Math.round(team.elo)
-                td.rec= team.record
-                +pcttd(Number(team.chances[0].seed7))
-                +pcttd(Number(team.chances[0].seed6))
-                +pcttd(Number(team.chances[0].seed5))
-                +pcttd(Number(team.chances[0].seed4))
-                +pcttd(Number(team.chances[0].seed3))
-                +pcttd(Number(team.chances[0].seed2))
-                +pcttd(Number(team.chances[0].seed1))
-                +pcttd(Number(team.chances[0].hostWildCard), true)
-                +pcttd(Number(team.chances[0].makeDivision), true)
-                +pcttd(Number(team.chances[0].hostDivision), true)
-                +pcttd(Number(team.chances[0].makeConference), true)
-                +pcttd(Number(team.chances[0].hostConference), true)
-                +pcttd(Number(team.chances[0].makeSuperBowl), true)
-                +pcttd(Number(team.chances[0].winSuperBowl), true)
+                td.team
+                    img(src='../img/' + team.abbreviation.toLowerCase() + '.svg')
+                td.team
+                    span
+                        a(href='/teams/' + team.id)= team.locality + ' ' + team.name
+                    span.record= team.record
+                td.team
+                    img(src='../img/' + (team.division.conferenceId == 7 ? 'nfc' : 'afc') + '.svg')
+                td.team.border= team.division.name.substring(4, 9)
+                +pcttd(Number(team.chances[0].seed7), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].seed6), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].seed5), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].seed4), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].seed3), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].seed2), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].seed1), "probs-min-seeding")
+                +pcttd(Number(team.chances[0].hostWildCard), "probs-playoffs")
+                +pcttd(Number(team.chances[0].makeDivision), "probs-playoffs")
+                +pcttd(Number(team.chances[0].hostDivision), "probs-playoffs")
+                +pcttd(Number(team.chances[0].makeConference), "probs-playoffs")
+                +pcttd(Number(team.chances[0].hostConference), "probs-playoffs")
+                +pcttd(Number(team.chances[0].makeSuperBowl), "probs-playoffs")
+                +pcttd(Number(team.chances[0].winSuperBowl), "probs-playoffs")

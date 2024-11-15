@@ -32,7 +32,7 @@ header, td.pct, td.rec {
 }
 
 table {
-    font-size: 21px;
+    font-size: 18px;
     max-height: 100%;
     overflow: scroll;
     margin-bottom: 1em;
@@ -56,8 +56,14 @@ table.infobox img.team-logo {
     margin: 0.5em auto;
 }
 
-table {
-    border: 2px solid black;
+span.record {
+    margin-left: 1em;
+    font-size: 13.5px;
+    color: gray;
+}
+
+td.border {
+    border-right: 2px solid black;
 }
 
 tr.head {
@@ -111,7 +117,7 @@ td.date a {
 
 td.head {
     background-color: white;
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
     font-weight: bold;
     padding: 0.5em 0.25em;
@@ -131,13 +137,13 @@ table.infobox td.head {
     padding-left: 0.5em;
 }
 
-td.rec, td.date {
-    text-align: center;
+td {
     background-color: white;
 }
 
-td.team, td.team a {
-    color: white;
+td.team,
+td.team a {
+    color: black;
 }
 
 td a:hover,
@@ -145,8 +151,8 @@ td a:hover,
     color: gray;
 }
 
-td.pct, td.rec {
-    width: 3.4em;
+td.pct {
+    width: 3.7em;
 }
 
 td, th {
@@ -154,7 +160,6 @@ td, th {
 }
 
 footer {
-    background-image: linear-gradient(#fff1d4, darkgray);
     padding: 5em;
     margin: 2em 0 0 0;
 }
@@ -183,14 +188,21 @@ a {
 }
 
 .main-wrapper {
-    margin: 100px auto 0 auto;
+    margin: 0 auto 0 auto;
     min-height: 100%;
+}
+
+.main {
+    max-width: 1200px;
+    margin: 0 auto 0 auto;
+    padding: 100px 300px 0 300px;
+    background-image: linear-gradient(90deg, #fff1d4, white 8%, white 92%, #fff1d4 100%);
 }
 
 .header-inner,
 .main-wrapper,
 footer p {
-    max-width: 1450px;
+    max-width: 1800px;
 }
 
 .header-inner,
@@ -205,4 +217,12 @@ footer p {
 
 td.probs-hidden {
     display: none;
+}
+
+@media (max-width: 1800px) {
+    .main {
+        background-color: white;
+        background-image: none;
+        padding: 100px 0 0 0;
+    }
 }
