@@ -562,7 +562,7 @@ function simulate (
 		let confTeams = teams.filter(t => t.getConferenceId() === conferences[i].id);
 		confTeams = nflSort(confTeams);
 		
-		for (let j = 0; j <= confTeams.length; j++) {
+		for (let j = 0; j < confTeams.length; j++) {
 			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
 
 			if (appearance === undefined) {
