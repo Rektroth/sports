@@ -17,13 +17,7 @@ import SimTeam from './util/simteam';
 
 class TeamAppearances {
 	teamId: number;
-	numSeed7: number = 0;
-	numSeed6: number = 0;
-	numSeed5: number = 0;
-	numSeed4: number = 0;
-	numSeed3: number = 0;
-	numSeed2: number = 0;
-	numSeed1: number = 0;
+	numSeed: number[] = [];
 	numHostWc: number = 0;
 	numHostDiv: number = 0;
 	numHostConf: number = 0;
@@ -36,46 +30,29 @@ class TeamAppearances {
 	constructor (id: number, gameIds: number[]) {
 		this.teamId = id;
 		this.gameAppearances = gameIds.map(gi => new GameAppearances(gi));
+		for (let i = 0; i < 16; i++) this.numSeed.push(0);
 	}
 
-	getMinSeed1() {
-		return this.numSeed1;
+	getSeed(seed: number) {
+		if (!(seed > this.numSeed.length)) return this.numSeed[seed];
+		return 0;
 	}
 
-	getMinSeed2() {
-		return this.getMinSeed1() + this.numSeed2;
+	getMinSeed(seed: number) {
+		let sum = 0;
+		let max = seed > this.numSeed.length ? this.numSeed.length : seed;
+		for (let i = 0; i < max; i++) sum += this.numSeed[i];
+		return sum;
 	}
 
-	getMinSeed3() {
-		return this.getMinSeed2() + this.numSeed3;
-	}
-
-	getMinSeed4() {
-		return this.getMinSeed3() + this.numSeed4;
-	}
-
-	getMinSeed5() {
-		return this.getMinSeed4() + this.numSeed5;
-	}
-
-	getMinSeed6() {
-		return this.getMinSeed5() + this.numSeed6;
-	}
-
-	getMinSeed7() {
-		return this.getMinSeed6() + this.numSeed7;
+	addSeed(seed: number) {
+		if (!(seed > this.numSeed.length)) this.numSeed[seed]++;
 	}
 }
 
 class GameAppearances {
 	gameId: number;
-	numSeed7Home: number = 0;
-	numSeed6Home: number = 0;
-	numSeed5Home: number = 0;
-	numSeed4Home: number = 0;
-	numSeed3Home: number = 0;
-	numSeed2Home: number = 0;
-	numSeed1Home: number = 0;
+	numSeedHome: number[] = [];
 	numHostWcHome: number = 0;
 	numHostDivHome: number = 0;
 	numHostConfHome: number = 0;
@@ -83,13 +60,7 @@ class GameAppearances {
 	numMakeConfHome: number = 0;
 	numMakeSbHome: number = 0;
 	numWinSbHome: number = 0;
-	numSeed7Away: number = 0;
-	numSeed6Away: number = 0;
-	numSeed5Away: number = 0;
-	numSeed4Away: number = 0;
-	numSeed3Away: number = 0;
-	numSeed2Away: number = 0;
-	numSeed1Away: number = 0;
+	numSeedAway: number[] = [];
 	numHostWcAway: number = 0;
 	numHostDivAway: number = 0;
 	numHostConfAway: number = 0;
@@ -102,6 +73,43 @@ class GameAppearances {
 
 	constructor (id: number) {
 		this.gameId = id;
+
+		for (let i = 0; i < 16; i++) {
+			this.numSeedHome.push(0);
+			this.numSeedAway.push(0);
+		}
+	}
+
+	getSeedHome(seed: number) {
+		if (!(seed > this.numSeedHome.length)) return this.numSeedHome[seed];
+		return 0;
+	}
+
+	getMinSeedHome(seed: number) {
+		let sum = 0;
+		let max = seed > this.numSeedHome.length ? this.numSeedHome.length : seed;
+		for (let i = 0; i < max; i++) sum += this.numSeedHome[i];
+		return sum;
+	}
+
+	addSeedHome(seed: number) {
+		if (!(seed > this.numSeedHome.length)) this.numSeedHome[seed]++;
+	}
+
+	getSeedAway(seed: number) {
+		if (!(seed > this.numSeedAway.length)) return this.numSeedAway[seed];
+		return 0;
+	}
+
+	getMinSeedAway(seed: number) {
+		let sum = 0;
+		let max = seed > this.numSeedAway.length ? this.numSeedAway.length : seed;
+		for (let i = 0; i < max; i++) sum += this.numSeedAway[i];
+		return sum;
+	}
+
+	addSeedAway(seed: number) {
+		if (!(seed > this.numSeedAway.length)) this.numSeedAway[seed]++;
 	}
 }
 
@@ -554,140 +562,29 @@ function simulate (
 		let confTeams = teams.filter(t => t.getConferenceId() === conferences[i].id);
 		confTeams = nflSort(confTeams);
 		
-		for (let j = 0; j <= 6; j++) {
+		for (let j = 0; j <= confTeams.length; j++) {
 			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
 
 			if (appearance === undefined) {
 				continue;
 			}
 
-			switch (j) {
-				case 0:
-					appearance.numSeed1++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+			appearance.addSeed(j);
 
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed1Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+			for (let k = 0; k < soonGames.length; k++) {
+				if (soonGames[k].gameOutcome === GameOutcome.HOME) {
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed1Away++;
-							}
-						}
+					if (gameAppearance !== undefined) {
+						gameAppearance.addSeedHome(j);
 					}
-					break;
-				case 1:
-					appearance.numSeed2++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+				} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
 
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed2Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed2Away++;
-							}
-						}
+					if (gameAppearance !== undefined) {
+						gameAppearance.addSeedAway(j);
 					}
-					break;
-				case 2:
-					appearance.numSeed3++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed3Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed3Away++;
-							}
-						}
-					}
-					break;
-				case 3:
-					appearance.numSeed4++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed4Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed4Away++;
-							}
-						}
-					}
-					break;
-				case 4:
-					appearance.numSeed5++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed5Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed5Away++;
-							}
-						}
-					}
-					break;
-				case 5:
-					appearance.numSeed6++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed6Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed6Away++;
-							}
-						}
-					}
-					break;
-				case 6:
-					appearance.numSeed7++;
-					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed7Home++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-							if (gameAppearance !== undefined) {
-								gameAppearance.numSeed7Away++;
-							}
-						}
-					}
-					break;
+				}
 			}
 		}
 
@@ -1146,13 +1043,13 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		if (conference === undefined) continue;
 		const division = conference.filter(t => t.getDivisionId() === team.getDivisionId());
 
-		const seed7Chance = correctForEliminatedOrClinched(appearance.getMinSeed7() / SIMS, GAMES_PER_SEASON, team, conference[6]);
-		const seed6Chance = correctForEliminatedOrClinched(appearance.getMinSeed6() / SIMS, GAMES_PER_SEASON, team, conference[5]);
-		const seed5Chance = correctForEliminatedOrClinched(appearance.getMinSeed5() / SIMS, GAMES_PER_SEASON, team, conference[4]);
-		const seed4Chance = correctForEliminatedOrClinched(appearance.getMinSeed4() / SIMS, GAMES_PER_SEASON, team, conference[3], division[0]);
-		const seed3Chance = correctForEliminatedOrClinched(appearance.getMinSeed3() / SIMS, GAMES_PER_SEASON, team, conference[2], division[0]);
-		const seed2Chance = correctForEliminatedOrClinched(appearance.getMinSeed2() / SIMS, GAMES_PER_SEASON, team, conference[1], division[0]);
-		const seed1Chance = correctForEliminatedOrClinched(appearance.getMinSeed1() / SIMS, GAMES_PER_SEASON, team, conference[0], division[0]);
+		const seed7Chance = correctForEliminatedOrClinched(appearance.getMinSeed(6) / SIMS, GAMES_PER_SEASON, team, conference[6]);
+		const seed6Chance = correctForEliminatedOrClinched(appearance.getMinSeed(5) / SIMS, GAMES_PER_SEASON, team, conference[5]);
+		const seed5Chance = correctForEliminatedOrClinched(appearance.getMinSeed(4) / SIMS, GAMES_PER_SEASON, team, conference[4]);
+		const seed4Chance = correctForEliminatedOrClinched(appearance.getMinSeed(3) / SIMS, GAMES_PER_SEASON, team, conference[3], division[0]);
+		const seed3Chance = correctForEliminatedOrClinched(appearance.getMinSeed(2) / SIMS, GAMES_PER_SEASON, team, conference[2], division[0]);
+		const seed2Chance = correctForEliminatedOrClinched(appearance.getMinSeed(1) / SIMS, GAMES_PER_SEASON, team, conference[1], division[0]);
+		const seed1Chance = correctForEliminatedOrClinched(appearance.getMinSeed(0) / SIMS, GAMES_PER_SEASON, team, conference[0], division[0]);
 		const makeDivChance = correctForEliminated(appearance.numMakeDiv / SIMS, seed7Chance);
 		const makeConfChance = correctForEliminated(appearance.numMakeConf / SIMS, makeDivChance);
 		const makeSbChance = correctForEliminated(appearance.numMakeSb / SIMS, makeConfChance);
@@ -1191,13 +1088,13 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 			await teamChancesByGameRepo.save({
 				gameId: gameAppearance.gameId,
 				teamId: appearance.teamId,
-				homeSeed7: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed7Home / numHomeWins, numHomeWins),
-				homeSeed6: adjustForMarginOfError(seed6Chance, gameAppearance.numSeed6Home / numHomeWins, numHomeWins),
-				homeSeed5: adjustForMarginOfError(seed5Chance, gameAppearance.numSeed5Home / numHomeWins, numHomeWins),
-				homeSeed4: adjustForMarginOfError(seed4Chance, gameAppearance.numSeed4Home / numHomeWins, numHomeWins),
-				homeSeed3: adjustForMarginOfError(seed3Chance, gameAppearance.numSeed3Home / numHomeWins, numHomeWins),
-				homeSeed2: adjustForMarginOfError(seed2Chance, gameAppearance.numSeed2Home / numHomeWins, numHomeWins),
-				homeSeed1: adjustForMarginOfError(seed1Chance, gameAppearance.numSeed1Home / numHomeWins, numHomeWins),
+				homeSeed7: adjustForMarginOfError(seed7Chance, gameAppearance.getMinSeedHome(6) / numHomeWins, numHomeWins),
+				homeSeed6: adjustForMarginOfError(seed6Chance, gameAppearance.getMinSeedHome(5) / numHomeWins, numHomeWins),
+				homeSeed5: adjustForMarginOfError(seed5Chance, gameAppearance.getMinSeedHome(4) / numHomeWins, numHomeWins),
+				homeSeed4: adjustForMarginOfError(seed4Chance, gameAppearance.getMinSeedHome(3) / numHomeWins, numHomeWins),
+				homeSeed3: adjustForMarginOfError(seed3Chance, gameAppearance.getMinSeedHome(2) / numHomeWins, numHomeWins),
+				homeSeed2: adjustForMarginOfError(seed2Chance, gameAppearance.getMinSeedHome(1) / numHomeWins, numHomeWins),
+				homeSeed1: adjustForMarginOfError(seed1Chance, gameAppearance.getMinSeedHome(0) / numHomeWins, numHomeWins),
 				homeHostWildCard: adjustForMarginOfError(hostWcChance, gameAppearance.numHostWcHome / numHomeWins, numHomeWins),
 				homeHostDivision: adjustForMarginOfError(hostDivChance, gameAppearance.numHostDivHome / numHomeWins, numHomeWins),
 				homeHostConference: adjustForMarginOfError(hostConfChance, gameAppearance.numHostConfHome / numHomeWins, numHomeWins),
@@ -1205,13 +1102,13 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 				homeMakeConference: adjustForMarginOfError(makeConfChance, gameAppearance.numMakeConfHome / numHomeWins, numHomeWins),
 				homeMakeSuperBowl: adjustForMarginOfError(makeSbChance, gameAppearance.numMakeSbHome / numHomeWins, numHomeWins),
 				homeWinSuperBowl: adjustForMarginOfError(winSbChance, gameAppearance.numWinSbHome / numHomeWins, numHomeWins),
-				awaySeed7: adjustForMarginOfError(seed7Chance, gameAppearance.numSeed7Away / numAwayWins, numAwayWins),
-				awaySeed6: adjustForMarginOfError(seed6Chance, gameAppearance.numSeed6Away / numAwayWins, numAwayWins),
-				awaySeed5: adjustForMarginOfError(seed5Chance, gameAppearance.numSeed5Away / numAwayWins, numAwayWins),
-				awaySeed4: adjustForMarginOfError(seed4Chance, gameAppearance.numSeed4Away / numAwayWins, numAwayWins),
-				awaySeed3: adjustForMarginOfError(seed3Chance, gameAppearance.numSeed3Away / numAwayWins, numAwayWins),
-				awaySeed2: adjustForMarginOfError(seed2Chance, gameAppearance.numSeed2Away / numAwayWins, numAwayWins),
-				awaySeed1: adjustForMarginOfError(seed1Chance, gameAppearance.numSeed1Away / numAwayWins, numAwayWins),
+				awaySeed7: adjustForMarginOfError(seed7Chance, gameAppearance.getMinSeedAway(6) / numAwayWins, numAwayWins),
+				awaySeed6: adjustForMarginOfError(seed6Chance, gameAppearance.getMinSeedAway(5) / numAwayWins, numAwayWins),
+				awaySeed5: adjustForMarginOfError(seed5Chance, gameAppearance.getMinSeedAway(4) / numAwayWins, numAwayWins),
+				awaySeed4: adjustForMarginOfError(seed4Chance, gameAppearance.getMinSeedAway(3) / numAwayWins, numAwayWins),
+				awaySeed3: adjustForMarginOfError(seed3Chance, gameAppearance.getMinSeedAway(2) / numAwayWins, numAwayWins),
+				awaySeed2: adjustForMarginOfError(seed2Chance, gameAppearance.getMinSeedAway(1) / numAwayWins, numAwayWins),
+				awaySeed1: adjustForMarginOfError(seed1Chance, gameAppearance.getMinSeedAway(0) / numAwayWins, numAwayWins),
 				awayHostWildCard: adjustForMarginOfError(hostWcChance, gameAppearance.numHostWcAway / numAwayWins, numAwayWins),
 				awayHostDivision: adjustForMarginOfError(hostDivChance, gameAppearance.numHostDivAway / numAwayWins, numAwayWins),
 				awayHostConference: adjustForMarginOfError(hostConfChance, gameAppearance.numHostConfAway / numAwayWins, numAwayWins),
