@@ -10,89 +10,131 @@ export default class TeamChancesByGame {
 	@PrimaryColumn({ name: 'team_id', type: 'smallint' })
 		teamId: number;
 
-	@Column({ name: 'away_seed7', type: 'double precision' })
-		awaySeed7: number;
+	@Column({ name: 'min_seed7_if_away_win', type: 'double precision' })
+		minimumSeed7IfAwayWins: number;
 
-	@Column({ name: 'away_seed6', type: 'double precision' })
-		awaySeed6: number;
+	@Column({ name: 'min_seed6_if_away_win', type: 'double precision' })
+		minimumSeed6IfAwayWins: number;
 
-	@Column({ name: 'away_seed5', type: 'double precision' })
-		awaySeed5: number;
+	@Column({ name: 'min_seed5_if_away_win', type: 'double precision' })
+		minimumSeed5IfAwayWins: number;
 
-	@Column({ name: 'away_seed4', type: 'double precision' })
-		awaySeed4: number;
+	@Column({ name: 'min_seed4_if_away_win', type: 'double precision' })
+		minimumSeed4IfAwayWins: number;
 
-	@Column({ name: 'away_seed3', type: 'double precision' })
-		awaySeed3: number;
+	@Column({ name: 'min_seed3_if_away_win', type: 'double precision' })
+		minimumSeed3IfAwayWins: number;
 
-	@Column({ name: 'away_seed2', type: 'double precision' })
-		awaySeed2: number;
+	@Column({ name: 'min_seed2_if_away_win', type: 'double precision' })
+		minimumSeed2IfAwayWins: number;
 
-	@Column({ name: 'away_seed1', type: 'double precision' })
-		awaySeed1: number;
+	@Column({ name: 'min_seed1_if_away_win', type: 'double precision' })
+		minimumSeed1IfAwayWins: number;
 
-	@Column({ name: 'away_host_wc', type: 'double precision' })
-		awayHostWildCard: number;
+	@Column({ name: 'seed7_if_away_win', type: 'double precision' })
+		seed7IfAwayWins: number;
 
-	@Column({ name: 'away_host_div', type: 'double precision' })
-		awayHostDivision: number;
+	@Column({ name: 'seed6_if_away_win', type: 'double precision' })
+		seed6IfAwayWins: number;
 
-	@Column({ name: 'away_host_conf', type: 'double precision' })
-		awayHostConference: number;
+	@Column({ name: 'seed5_if_away_win', type: 'double precision' })
+		seed5IfAwayWins: number;
 
-	@Column({ name: 'away_make_div', type: 'double precision' })
-		awayMakeDivision: number;
+	@Column({ name: 'seed4_if_away_win', type: 'double precision' })
+		seed4IfAwayWins: number;
 
-	@Column({ name: 'away_make_conf', type: 'double precision' })
-		awayMakeConference: number;
+	@Column({ name: 'seed3_if_away_win', type: 'double precision' })
+		seed3IfAwayWins: number;
 
-	@Column({ name: 'away_make_sb', type: 'double precision' })
-		awayMakeSuperBowl: number;
+	@Column({ name: 'seed2_if_away_win', type: 'double precision' })
+		seed2IfAwayWins: number;
 
-	@Column({ name: 'away_win_sb', type: 'double precision' })
-		awayWinSuperBowl: number;
+	@Column({ name: 'seed1_if_away_win', type: 'double precision' })
+		seed1IfAwayWins: number;
 
-	@Column({ name: 'home_seed7', type: 'double precision' })
-		homeSeed7: number;
+	@Column({ name: 'host_wild_card_rnd_if_away_win', type: 'double precision' })
+		hostWildCardRoundIfAwayWins: number;
 
-	@Column({ name: 'home_seed6', type: 'double precision' })
-		homeSeed6: number;
+	@Column({ name: 'host_div_rnd_if_away_win', type: 'double precision' })
+		hostDivisionRoundIfAwayWins: number;
 
-	@Column({ name: 'home_seed5', type: 'double precision' })
-		homeSeed5: number;
+	@Column({ name: 'host_conf_rnd_if_away_win', type: 'double precision' })
+		hostConferenceRoundIfAwayWins: number;
 
-	@Column({ name: 'home_seed4', type: 'double precision' })
-		homeSeed4: number;
+	@Column({ name: 'make_div_rnd_if_away_win', type: 'double precision' })
+		makeDivisionRoundIfAwayWins: number;
 
-	@Column({ name: 'home_seed3', type: 'double precision' })
-		homeSeed3: number;
+	@Column({ name: 'make_conf_rnd_if_away_win', type: 'double precision' })
+		makeConferenceRoundIfAwayWins: number;
 
-	@Column({ name: 'home_seed2', type: 'double precision' })
-		homeSeed2: number;
+	@Column({ name: 'make_super_bowl_if_away_win', type: 'double precision' })
+		makeSuperBowlIfAwayWins: number;
 
-	@Column({ name: 'home_seed1', type: 'double precision' })
-		homeSeed1: number;
+	@Column({ name: 'win_super_bowl_if_away_win', type: 'double precision' })
+		winSuperBowlIfAwayWins: number;
 
-	@Column({ name: 'home_host_wc', type: 'double precision' })
-		homeHostWildCard: number;
+	@Column({ name: 'min_seed7_if_home_win', type: 'double precision' })
+		minimumSeed7IfHomeWins: number;
 
-	@Column({ name: 'home_host_div', type: 'double precision' })
-		homeHostDivision: number;
+	@Column({ name: 'min_seed6_if_home_win', type: 'double precision' })
+		minimumSeed6IfHomeWins: number;
 
-	@Column({ name: 'home_host_conf', type: 'double precision' })
-		homeHostConference: number;
+	@Column({ name: 'min_seed5_if_home_win', type: 'double precision' })
+		minimumSeed5IfHomeWins: number;
 
-	@Column({ name: 'home_make_div', type: 'double precision' })
-		homeMakeDivision: number;
+	@Column({ name: 'min_seed4_if_home_win', type: 'double precision' })
+		minimumSeed4IfHomeWins: number;
 
-	@Column({ name: 'home_make_conf', type: 'double precision' })
-		homeMakeConference: number;
+	@Column({ name: 'min_seed3_if_home_win', type: 'double precision' })
+		minimumSeed3IfHomeWins: number;
 
-	@Column({ name: 'home_make_sb', type: 'double precision' })
-		homeMakeSuperBowl: number;
+	@Column({ name: 'min_seed2_if_home_win', type: 'double precision' })
+		minimumSeed2IfHomeWins: number;
 
-	@Column({ name: 'home_win_sb', type: 'double precision' })
-		homeWinSuperBowl: number;
+	@Column({ name: 'min_seed1_if_home_win', type: 'double precision' })
+		minimumSeed1IfHomeWins: number;
+
+	@Column({ name: 'seed7_if_home_win', type: 'double precision' })
+		seed7IfHomeWins: number;
+
+	@Column({ name: 'seed6_if_home_win', type: 'double precision' })
+		seed6IfHomeWins: number;
+
+	@Column({ name: 'seed5_if_home_win', type: 'double precision' })
+		seed5IfHomeWins: number;
+
+	@Column({ name: 'seed4_if_home_win', type: 'double precision' })
+		seed4IfHomeWins: number;
+
+	@Column({ name: 'seed3_if_home_win', type: 'double precision' })
+		seed3IfHomeWins: number;
+
+	@Column({ name: 'seed2_if_home_win', type: 'double precision' })
+		seed2IfHomeWins: number;
+
+	@Column({ name: 'seed1_if_home_win', type: 'double precision' })
+		seed1IfHomeWins: number;
+
+	@Column({ name: 'host_wild_card_rnd_if_home_win', type: 'double precision' })
+		hostWildCardRoundIfHomeWins: number;
+
+	@Column({ name: 'host_div_rnd_if_home_win', type: 'double precision' })
+		hostDivisionRoundIfHomeWins: number;
+
+	@Column({ name: 'host_conf_rnd_if_home_win', type: 'double precision' })
+		hostConferenceRoundIfHomeWins: number;
+
+	@Column({ name: 'make_div_rnd_if_home_win', type: 'double precision' })
+		makeDivisionRoundIfHomeWins: number;
+
+	@Column({ name: 'make_conf_rnd_if_home_win', type: 'double precision' })
+		makeConferenceRoundIfHomeWins: number;
+
+	@Column({ name: 'make_super_bowl_if_home_win', type: 'double precision' })
+		makeSuperBowlIfHomeWins: number;
+
+	@Column({ name: 'win_super_bowl_if_home_win', type: 'double precision' })
+		winSuperBowlIfHomeWins: number;
 
 	@ManyToOne(() => Game)
 	@JoinColumn({ name: 'game_id' })

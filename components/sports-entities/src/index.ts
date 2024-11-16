@@ -25,11 +25,11 @@ export function SportsDataSource (
 		entities: [
 			Conference,
 			Division,
-			Team,
 			Game,
+			Team,
+			TeamChances,
 			TeamChancesByGame,
-			TeamElo,
-			TeamChances
+			TeamElo
 		],
 		synchronize: false,
 		logging: false

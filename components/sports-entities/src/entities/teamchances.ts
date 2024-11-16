@@ -9,6 +9,27 @@ export default class TeamChances {
 	@PrimaryColumn({ name: 'season', type: 'smallint' })
 		season: number;
 
+	@Column({ name: 'min_seed7', type: 'double precision' })
+		minimumSeed7: number;
+
+	@Column({ name: 'min_seed6', type: 'double precision' })
+		minimumSeed6: number;
+
+	@Column({ name: 'min_seed5', type: 'double precision' })
+		minimumSeed5: number;
+
+	@Column({ name: 'min_seed4', type: 'double precision' })
+		minimumSeed4: number;
+
+	@Column({ name: 'min_seed3', type: 'double precision' })
+		minimumSeed3: number;
+
+	@Column({ name: 'min_seed2', type: 'double precision' })
+		minimumSeed2: number;
+
+	@Column({ name: 'min_seed1', type: 'double precision' })
+		minimumSeed1: number;
+
 	@PrimaryColumn({ name: 'week', type: 'smallint' })
 		week: number;
 
@@ -33,25 +54,25 @@ export default class TeamChances {
 	@Column({ name: 'seed1', type: 'double precision' })
 		seed1: number;
 
-	@Column({ name: 'host_wc', type: 'double precision' })
-		hostWildCard: number;
+	@Column({ name: 'host_wild_card_rnd', type: 'double precision' })
+		hostWildCardRound: number;
 
-	@Column({ name: 'host_div', type: 'double precision' })
-		hostDivision: number;
+	@Column({ name: 'host_div_rnd', type: 'double precision' })
+		hostDivisionRound: number;
 
-	@Column({ name: 'host_conf', type: 'double precision' })
-		hostConference: number;
+	@Column({ name: 'host_conf_rnd', type: 'double precision' })
+		hostConferenceRound: number;
 
-	@Column({ name: 'make_div', type: 'double precision' })
-		makeDivision: number;
+	@Column({ name: 'make_div_rnd', type: 'double precision' })
+		makeDivisionRound: number;
 
-	@Column({ name: 'make_conf', type: 'double precision' })
-		makeConference: number;
+	@Column({ name: 'make_conf_rnd', type: 'double precision' })
+		makeConferenceRound: number;
 
-	@Column({ name: 'make_sb', type: 'double precision' })
+	@Column({ name: 'make_super_bowl', type: 'double precision' })
 		makeSuperBowl: number;
 
-	@Column({ name: 'win_sb', type: 'double precision' })
+	@Column({ name: 'win_super_bowl', type: 'double precision' })
 		winSuperBowl: number;
 
 	@ManyToOne(() => Team)
