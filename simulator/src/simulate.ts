@@ -34,19 +34,19 @@ class TeamAppearances {
 	}
 
 	getSeed(seed: number) {
-		if (!(seed > this.numSeed.length)) return this.numSeed[seed];
+		if (this.numSeed.length > seed) return this.numSeed[seed];
 		return 0;
 	}
 
 	getMinSeed(seed: number) {
 		let sum = 0;
-		let max = seed > this.numSeed.length ? this.numSeed.length : seed;
+		let max = this.numSeed.length > seed ? seed : this.numSeed.length - 1;
 		for (let i = 0; i < max; i++) sum += this.numSeed[i];
 		return sum;
 	}
 
 	addSeed(seed: number) {
-		if (!(seed > this.numSeed.length)) this.numSeed[seed]++;
+		if (this.numSeed.length > seed) this.numSeed[seed]++;
 	}
 }
 
@@ -81,35 +81,35 @@ class GameAppearances {
 	}
 
 	getSeedHome(seed: number) {
-		if (!(seed > this.numSeedHome.length)) return this.numSeedHome[seed];
+		if (this.numSeedHome.length > seed) return this.numSeedHome[seed];
 		return 0;
 	}
 
 	getMinSeedHome(seed: number) {
 		let sum = 0;
-		let max = seed > this.numSeedHome.length ? this.numSeedHome.length : seed;
+		let max = this.numSeedHome.length > seed ? seed : this.numSeedHome.length - 1;
 		for (let i = 0; i < max; i++) sum += this.numSeedHome[i];
 		return sum;
 	}
 
 	addSeedHome(seed: number) {
-		if (!(seed > this.numSeedHome.length)) this.numSeedHome[seed]++;
+		if (this.numSeedHome.length > seed) this.numSeedHome[seed]++;
 	}
 
 	getSeedAway(seed: number) {
-		if (!(seed > this.numSeedAway.length)) return this.numSeedAway[seed];
+		if (this.numSeedAway.length > seed) return this.numSeedAway[seed];
 		return 0;
 	}
 
 	getMinSeedAway(seed: number) {
 		let sum = 0;
-		let max = seed > this.numSeedAway.length ? this.numSeedAway.length : seed;
+		let max = this.numSeedAway.length > seed ? seed : this.numSeedAway.length - 1;
 		for (let i = 0; i < max; i++) sum += this.numSeedAway[i];
 		return sum;
 	}
 
 	addSeedAway(seed: number) {
-		if (!(seed > this.numSeedAway.length)) this.numSeedAway[seed]++;
+		if (this.numSeedAway.length > seed) this.numSeedAway[seed]++;
 	}
 }
 
@@ -346,9 +346,7 @@ function simulate (
 						Outcome.LOSS);
 				}
 
-				if (isSoonGame) {
-					soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-				}
+				if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 			} else if (r < added) {
 				if (homeTeam !== undefined) {
 					homeTeam.elo = newElo(
@@ -374,9 +372,7 @@ function simulate (
 						Outcome.WIN);
 				}
 
-				if (isSoonGame) {
-					soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-				}
+				if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 			} else {
 				if (homeTeam !== undefined) {
 					homeTeam.elo = newElo(
@@ -402,18 +398,11 @@ function simulate (
 						Outcome.TIE);
 				}
 
-				if (isSoonGame) {
-					soonGames.push(new SimGame(game.id, GameOutcome.TIE));
-				}
+				if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.TIE));
 			}
 
-			if (homeTeam !== undefined) {
-				homeTeam.lastGame = game.startDateTime;
-			}
-
-			if (awayTeam !== undefined) {
-				awayTeam.lastGame = game.startDateTime;
-			}
+			if (homeTeam !== undefined) homeTeam.lastGame = game.startDateTime;
+			if (awayTeam !== undefined) awayTeam.lastGame = game.startDateTime;
 		}
 	}
 
@@ -482,9 +471,7 @@ function simulate (
 					Outcome.LOSS);
 			}
 
-			if (isSoonGame) {
-				soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-			}
+			if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 		} else if (r < added) {
 			homeTeam?.loseGame(game.awayTeamId);
 			awayTeam?.winGame(game.homeTeamId);
@@ -513,9 +500,7 @@ function simulate (
 					Outcome.WIN);
 			}
 
-			if (isSoonGame) {
-				soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-			}
+			if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 		} else {
 			homeTeam?.tieGame(game.awayTeamId);
 			awayTeam?.tieGame(game.homeTeamId);
@@ -544,18 +529,11 @@ function simulate (
 					Outcome.TIE);
 			}
 
-			if (isSoonGame) {
-				soonGames.push(new SimGame(game.id, GameOutcome.TIE));
-			}
+			if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.TIE));
 		}
 
-		if (homeTeam !== undefined) {
-			homeTeam.lastGame = game.startDateTime;
-		}
-
-		if (awayTeam !== undefined) {
-			awayTeam.lastGame = game.startDateTime;
-		}
+		if (homeTeam !== undefined) homeTeam.lastGame = game.startDateTime;
+		if (awayTeam !== undefined) awayTeam.lastGame = game.startDateTime;
 	}
 
 	for (let i = 0; i < conferences.length; i++) {
@@ -563,33 +541,17 @@ function simulate (
 		confTeams = nflSort(confTeams);
 		
 		for (let j = 0; j < confTeams.length; j++) {
+			confTeams[j].seed = j + 1;
 			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
-
-			if (appearance === undefined) {
-				continue;
-			}
-
+			if (appearance === undefined) continue;
 			appearance.addSeed(j);
 
 			for (let k = 0; k < soonGames.length; k++) {
-				if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-					if (gameAppearance !== undefined) {
-						gameAppearance.addSeedHome(j);
-					}
-				} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-					if (gameAppearance !== undefined) {
-						gameAppearance.addSeedAway(j);
-					}
-				}
+				const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+				if (gameAppearance === undefined) continue;
+				if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.addSeedHome(j);
+				else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.addSeedAway(j);
 			}
-		}
-
-		for (let i = 0; i < confTeams.length; i++) {
-			confTeams[i].seed = i + 1;
 		}
 	}
 
@@ -610,18 +572,12 @@ function simulate (
 					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 					wcWinners = wcWinners.concat(homeTeam);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 				} else {
 					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 					wcWinners = wcWinners.concat(awayTeam);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 				}
 			}
 		} else if (i < 10 && homeTeam !== undefined && awayTeam !== undefined) {
@@ -630,18 +586,12 @@ function simulate (
 					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 					divWinners = divWinners.concat(homeTeam);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 				} else {
 					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 					divWinners = divWinners.concat(awayTeam);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 				}
 			}
 		} else if (i < 12 && homeTeam !== undefined && awayTeam !== undefined) {
@@ -650,18 +600,12 @@ function simulate (
 					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
 					confWinners = confWinners.concat(homeTeam);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 				} else {
 					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
 					confWinners = confWinners.concat(awayTeam);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 				}
 			}
 		} else if (i === 12 && homeTeam !== undefined && awayTeam !== undefined) {
@@ -670,18 +614,12 @@ function simulate (
 					superBowlWinner = homeTeam;
 					teams.find(t => t.getId() === game.homeTeamId)?.winGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.loseGame(game.homeTeamId);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.HOME));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.HOME));
 				} else {
 					superBowlWinner = awayTeam;
 					teams.find(t => t.getId() === game.homeTeamId)?.loseGame(game.awayTeamId);
 					teams.find(t => t.getId() === game.awayTeamId)?.winGame(game.homeTeamId);
-
-					if (isSoonGame) {
-						soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
-					}
+					if (isSoonGame) soonGames.push(new SimGame(game.id, GameOutcome.AWAY));
 				}
 			} else {
 				superBowlWinner = simulatePlayoffGame(homeTeam, awayTeam, false, false);
@@ -701,19 +639,10 @@ function simulate (
 				appearance.numHostWc++;
 
 				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numHostWcHome++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numHostWcAway++;
-						}
-					}
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+					if (gameAppearance === undefined) continue;
+					if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numHostWcHome++;
+					else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numHostWcAway++;
 				}
 			}
 		}
