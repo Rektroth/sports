@@ -38,32 +38,32 @@ class TeamAppearances {
 		this.gameAppearances = gameIds.map(gi => new GameAppearances(gi));
 	}
 
-	getMinSeed7() {
-		return this.numSeed7;
-	}
-
-	getMinSeed6() {
-		return this.getMinSeed7() + this.numSeed6;
-	}
-
-	getMinSeed5() {
-		return this.getMinSeed6() + this.numSeed5;
-	}
-
-	getMinSeed4() {
-		return this.getMinSeed5() + this.numSeed4;
-	}
-
-	getMinSeed3() {
-		return this.getMinSeed4() + this.numSeed3;
+	getMinSeed1() {
+		return this.numSeed1;
 	}
 
 	getMinSeed2() {
-		return this.getMinSeed3() + this.numSeed2;
+		return this.getMinSeed1() + this.numSeed2;
 	}
 
-	getMinSeed1() {
-		return this.getMinSeed2() + this.numSeed1;
+	getMinSeed3() {
+		return this.getMinSeed2() + this.numSeed3;
+	}
+
+	getMinSeed4() {
+		return this.getMinSeed3() + this.numSeed4;
+	}
+
+	getMinSeed5() {
+		return this.getMinSeed4() + this.numSeed5;
+	}
+
+	getMinSeed6() {
+		return this.getMinSeed5() + this.numSeed6;
+	}
+
+	getMinSeed7() {
+		return this.getMinSeed6() + this.numSeed7;
 	}
 }
 
