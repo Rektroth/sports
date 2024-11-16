@@ -16,8 +16,8 @@ import printProgress from './util/printprogress';
 import SimTeam from './util/simteam';
 
 class TeamAppearances {
-	teamId: number;
-	numSeed: number[] = [];
+	private teamId: number;
+	private numSeed: number[] = [];
 	numHostWc: number = 0;
 	numHostDiv: number = 0;
 	numHostConf: number = 0;
@@ -31,6 +31,10 @@ class TeamAppearances {
 		this.teamId = id;
 		this.gameAppearances = gameIds.map(gi => new GameAppearances(gi));
 		for (let i = 0; i < 16; i++) this.numSeed.push(0);
+	}
+
+	getTeamId() {
+		return this.teamId;
 	}
 
 	getSeed(seed: number) {
@@ -51,8 +55,8 @@ class TeamAppearances {
 }
 
 class GameAppearances {
-	gameId: number;
-	numSeedHome: number[] = [];
+	private gameId: number;
+	private numSeedHome: number[] = [];
 	numHostWcHome: number = 0;
 	numHostDivHome: number = 0;
 	numHostConfHome: number = 0;
@@ -60,7 +64,7 @@ class GameAppearances {
 	numMakeConfHome: number = 0;
 	numMakeSbHome: number = 0;
 	numWinSbHome: number = 0;
-	numSeedAway: number[] = [];
+	private numSeedAway: number[] = [];
 	numHostWcAway: number = 0;
 	numHostDivAway: number = 0;
 	numHostConfAway: number = 0;
@@ -68,8 +72,8 @@ class GameAppearances {
 	numMakeConfAway: number = 0;
 	numMakeSbAway: number = 0;
 	numWinSbAway: number = 0;
-	homeWins: number = 0;
-	awayWins: number = 0;
+	private homeWins: number = 0;
+	private awayWins: number = 0;
 
 	constructor (id: number) {
 		this.gameId = id;
@@ -78,6 +82,10 @@ class GameAppearances {
 			this.numSeedHome.push(0);
 			this.numSeedAway.push(0);
 		}
+	}
+
+	getGameId() {
+		return this.gameId;
 	}
 
 	getSeedHome(seed: number) {
@@ -94,6 +102,11 @@ class GameAppearances {
 
 	addSeedHome(seed: number) {
 		if (this.numSeedHome.length > seed) this.numSeedHome[seed]++;
+		this.homeWins++;
+	}
+
+	getHomeWins() {
+		return this.homeWins;
 	}
 
 	getSeedAway(seed: number) {
@@ -110,6 +123,11 @@ class GameAppearances {
 
 	addSeedAway(seed: number) {
 		if (this.numSeedAway.length > seed) this.numSeedAway[seed]++;
+		this.awayWins++;
+	}
+
+	getAwayWins() {
+		return this.awayWins;
 	}
 }
 
@@ -542,12 +560,12 @@ function simulate (
 		
 		for (let j = 0; j < confTeams.length; j++) {
 			confTeams[j].seed = j + 1;
-			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
+			const appearance = appearances.find(ta => ta.getTeamId() === confTeams[j].getId());
 			if (appearance === undefined) continue;
 			appearance.addSeed(j);
 
 			for (let k = 0; k < soonGames.length; k++) {
-				const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+				const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
 				if (gameAppearance === undefined) continue;
 				if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.addSeedHome(j);
 				else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.addSeedAway(j);
@@ -633,13 +651,13 @@ function simulate (
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 		
 		for (let j = 1; j <= 3; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confTeams[j].getId());
+			const appearance = appearances.find(ta => ta.getTeamId() === confTeams[j].getId());
 	
 			if (appearance !== undefined) {
 				appearance.numHostWc++;
 
 				for (let k = 0; k < soonGames.length; k++) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
 					if (gameAppearance === undefined) continue;
 					if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numHostWcHome++;
 					else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numHostWcAway++;
@@ -674,70 +692,47 @@ function simulate (
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 		
 		for (let j = 0; j <= 2; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confWcWinners[j].getId());
+			const appearance = appearances.find(ta => ta.getTeamId() === confWcWinners[j].getId());
 		
 			if (appearance !== undefined) {
 				appearance.numMakeDiv++;
 
 				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numMakeDivHome++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numMakeDivAway++;
-						}
-					}
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+					if (gameAppearance === undefined) continue;
+					if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numMakeDivHome++;
+					else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numMakeDivAway++;
 				}
 
 				if (j === 0) {
 					appearance.numHostDiv++;
 
 					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-	
-							if (gameAppearance !== undefined) {
-								gameAppearance.numHostDivHome++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-	
-							if (gameAppearance !== undefined) {
-								gameAppearance.numHostDivAway++;
-							}
-						}
+						const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+						if (gameAppearance === undefined) continue;
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numHostDivHome++;
+						else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numHostDivAway++;
 					}
 				}
 			}
 		}
 
-		const appearance = appearances.find(ta => ta.teamId === confTeams[0].getId());
+		const appearance = appearances.find(ta => ta.getTeamId() === confTeams[0].getId());
 
 		if (appearance !== undefined) {
 			appearance.numMakeDiv++;
 			appearance.numHostDiv++;
 
 			for (let k = 0; k < soonGames.length; k++) {
+				const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+				if (gameAppearance === undefined) continue;
+
 				if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-					if (gameAppearance !== undefined) {
-						gameAppearance.numMakeDivHome++;
-						gameAppearance.numHostDivHome++;
-					}
+					gameAppearance.numMakeDivHome++;
+					gameAppearance.numHostDivHome++;
 				} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-					const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-					if (gameAppearance !== undefined) {
-						gameAppearance.numMakeDivAway++;
-						gameAppearance.numHostDivAway++;
-					}
+					gameAppearance.numMakeDivAway++;
+					gameAppearance.numHostDivAway++;
 				}
 			}
 		}
@@ -762,44 +757,26 @@ function simulate (
 			.sort((a, b) => a.seed > b.seed ? 1 : -1);
 
 		for (let j = 0; j <= 1; j++) {
-			const appearance = appearances.find(ta => ta.teamId === confDivWinners[j].getId());
+			const appearance = appearances.find(ta => ta.getTeamId() === confDivWinners[j].getId());
 
 			if (appearance !== undefined) {
 				appearance.numMakeConf++;
 
 				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numMakeConfHome++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numMakeConfAway++;
-						}
-					}
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+					if (gameAppearance === undefined) continue;
+					if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numMakeConfHome++;
+					else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numMakeConfAway++;
 				}
 
 				if (j === 0) {
 					appearance.numHostConf++;
 
 					for (let k = 0; k < soonGames.length; k++) {
-						if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-	
-							if (gameAppearance !== undefined) {
-								gameAppearance.numHostConfHome++;
-							}
-						} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-							const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-	
-							if (gameAppearance !== undefined) {
-								gameAppearance.numHostConfAway++;
-							}
-						}
+						const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+						if (gameAppearance === undefined) continue;
+						if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numHostConfHome++;
+						else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numHostConfAway++;
 					}
 				}
 			}
@@ -812,25 +789,16 @@ function simulate (
 			const winner = simulatePlayoffGame(confDivWinners[0], confDivWinners[1], false, false);
 			confWinners = confWinners.concat(winner);
 
-			const appearance = appearances.find(ta => ta.teamId === winner.getId());
+			const appearance = appearances.find(ta => ta.getTeamId() === winner.getId());
 
 			if (appearance !== undefined) {
 				appearance.numMakeSb++;
 
 				for (let k = 0; k < soonGames.length; k++) {
-					if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numMakeSbHome++;
-						}
-					} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-						const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-						if (gameAppearance !== undefined) {
-							gameAppearance.numMakeSbAway++;
-						}
-					}
+					const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+					if (gameAppearance === undefined) continue;
+					if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numMakeSbHome++;
+					else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numMakeSbAway++;
 				}
 			}
 		}
@@ -846,44 +814,16 @@ function simulate (
 		}
 	}
 
-	const appearance = appearances.find(ta => ta.teamId === superBowlWinner.getId());
+	const appearance = appearances.find(ta => ta.getTeamId() === superBowlWinner.getId());
 
 	if (appearance !== undefined) {
 		appearance.numWinSb++;
 
 		for (let k = 0; k < soonGames.length; k++) {
-			if (soonGames[k].gameOutcome === GameOutcome.HOME) {
-				const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-				if (gameAppearance !== undefined) {
-					gameAppearance.numWinSbHome++;
-				}
-			} else if (soonGames[k].gameOutcome === GameOutcome.AWAY) {
-				const gameAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGames[k].gameId);
-
-				if (gameAppearance !== undefined) {
-					gameAppearance.numWinSbAway++;
-				}
-			}
-		}
-	}
-
-	for (let i = 0; i < soonGames.length; i++) {
-		const soonGame = soonGames[i];
-
-		for (let j = 0; j < appearances.length; j++) {
-			const appearance = appearances[j];
-			const soonAppearance = appearance.gameAppearances.find(ga => ga.gameId === soonGame.gameId);
-
-			if (soonAppearance === undefined) {
-				continue;
-			}
-
-			if (soonGame.gameOutcome === GameOutcome.HOME) {
-				soonAppearance.homeWins++;
-			} else if (soonGame.gameOutcome === GameOutcome.AWAY) {
-				soonAppearance.awayWins++;
-			}
+			const gameAppearance = appearance.gameAppearances.find(ga => ga.getGameId() === soonGames[k].gameId);
+			if (gameAppearance === undefined) continue;
+			if (soonGames[k].gameOutcome === GameOutcome.HOME) gameAppearance.numWinSbHome++;
+			else if (soonGames[k].gameOutcome === GameOutcome.AWAY) gameAppearance.numWinSbAway++;
 		}
 	}
 }
@@ -956,7 +896,7 @@ function simulatePlayoffGame (
 
 async function analysis(appearances: TeamAppearances[], week: number, teams: SimTeam[]): Promise<void> {
 	let conferences: SimTeam[][] = [];
-	const conferenceIds = [...new Set(teams.map(t => t.getConferenceId()))]; // [...new Set( )] removes duplicate values
+	const conferenceIds = removeDuplicates(teams.map(t => t.getConferenceId()));
 
 	for (let i = 0; i < conferenceIds.length; i++) {
 		const conferenceId = conferenceIds[i];
@@ -966,7 +906,7 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 
 	for (let i = 0; i < appearances.length; i++) {
 		const appearance = appearances[i];
-		const team = teams.find(t => t.getId() === appearance.teamId);
+		const team = teams.find(t => t.getId() === appearance.getTeamId());
 		if (team === undefined) continue;
 		const conference = conferences.find(c => c.some(t => t.getConferenceId() === team.getConferenceId()));
 		if (conference === undefined) continue;
@@ -988,7 +928,7 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 		const hostConfChance = seed6Chance === 0 ? 0 : correctForEliminated(appearance.numHostConf / SIMS, makeConfChance);
 
 		await teamChancesRepo.save({
-			teamId: appearance.teamId,
+			teamId: appearance.getTeamId(),
 			season: CURRENT_SEASON,
 			week,
 			seed7: seed7Chance,
@@ -1011,12 +951,12 @@ async function analysis(appearances: TeamAppearances[], week: number, teams: Sim
 
 		for (let j = 0; j < gameAppearances.length; j++) {
 			const gameAppearance = gameAppearances[j];
-			const numHomeWins = gameAppearance.homeWins;
-			const numAwayWins = gameAppearance.awayWins;
+			const numHomeWins = gameAppearance.getHomeWins();
+			const numAwayWins = gameAppearance.getAwayWins();
 
 			await teamChancesByGameRepo.save({
-				gameId: gameAppearance.gameId,
-				teamId: appearance.teamId,
+				gameId: gameAppearance.getGameId(),
+				teamId: appearance.getTeamId(),
 				homeSeed7: adjustForMarginOfError(seed7Chance, gameAppearance.getMinSeedHome(6) / numHomeWins, numHomeWins),
 				homeSeed6: adjustForMarginOfError(seed6Chance, gameAppearance.getMinSeedHome(5) / numHomeWins, numHomeWins),
 				homeSeed5: adjustForMarginOfError(seed5Chance, gameAppearance.getMinSeedHome(4) / numHomeWins, numHomeWins),
@@ -1078,10 +1018,8 @@ function correctForEliminatedOrClinched (
 	opponent:SimTeam,
 	opponent2: SimTeam = opponent
 ): number {
-	if (original === 0 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason))
-		return 0.5 / SIMS;
-	if (original === 1 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason))
-		return 1 - (0.5 / SIMS);
+	if (original === 0 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason)) return 0.5 / SIMS;
+	if (original === 1 && team.getMagicNumber(opponent, gamesInSeason) > 0 && team.getMagicNumber(opponent2, gamesInSeason)) return 1 - (0.5 / SIMS);
 	return original;
 }
 
@@ -1094,4 +1032,14 @@ function correctForEliminatedOrClinched (
 function correctForEliminated (original: number, floorChance: number): number {
 	if (original === 0 && floorChance > 0 && floorChance < 1) return 0.5 / SIMS;
 	return original;
+}
+
+/**
+ * Removes duplicate values from an array.
+ * @param array The array to have duplicate values removed from.
+ * @returns The array with duplicate values removed.
+ */
+function removeDuplicates (array: number[]) {
+	// it's lazy, but it works
+	return [...new Set(array)];
 }
