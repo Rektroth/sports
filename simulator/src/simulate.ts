@@ -15,7 +15,7 @@ import nflSort from './util/nflsort';
 import printProgress from './util/printprogress';
 import SimTeam from './util/simteam';
 
-class TeamSimulations {
+class TeamSimulation {
 	private teamId: number;
 	private seeds: number[] = [];
 	hostWildCardRound: number = 0;
@@ -25,11 +25,11 @@ class TeamSimulations {
 	makeConferenceRound: number = 0;
 	makeSuperBowl: number = 0;
 	winSuperBowl: number = 0;
-	gameSimulations: GameSimulations[] = [];
+	gameSimulations: GameSimulation[] = [];
 
 	constructor (id: number, gameIds: number[]) {
 		this.teamId = id;
-		this.gameSimulations = gameIds.map(gi => new GameSimulations(gi));
+		this.gameSimulations = gameIds.map(gi => new GameSimulation(gi));
 		for (let i = 0; i < 16; i++) this.seeds.push(0);
 	}
 
@@ -54,7 +54,7 @@ class TeamSimulations {
 	}
 }
 
-class GameSimulations {
+class GameSimulation {
 	private gameId: number;
 	private seedsIfHomeWins: number[] = [];
 	hostWildCardRoundIfHomeWins: number = 0;
@@ -215,7 +215,7 @@ export default async function main (): Promise<void> {
 		}
 	});
 
-	const simulations = teams.map(t => new TeamSimulations(t.id, soonGameIds));
+	const simulations = teams.map(t => new TeamSimulation(t.id, soonGameIds));
 	const conferences = await conferenceRepo.find();
 	const simTeams = complete(completedGames, teams);
 
@@ -282,7 +282,7 @@ function simulate (
 	preTeams: SimTeam[],
 	conferences: Conference[],
 	soonGameIds: number[],
-	teamSimulations: TeamSimulations[]
+	teamSimulations: TeamSimulation[]
 ) {
 	const preSeasonGames = games.filter(g => g.seasonType === SeasonType.PRE);
 	const regSeasonGames = games.filter(g => g.seasonType === SeasonType.REGULAR);
@@ -874,7 +874,7 @@ function simulatePlayoffGame (
 	return awayTeam;
 }
 
-async function analysis(teamSimulations: TeamSimulations[], week: number, teams: SimTeam[]): Promise<void> {
+async function analysis(teamSimulations: TeamSimulation[], week: number, teams: SimTeam[]): Promise<void> {
 	let conferences: SimTeam[][] = [];
 	const conferenceIds = removeDuplicates(teams.map(t => t.getConferenceId()));
 
